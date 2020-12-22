@@ -4,6 +4,7 @@
   "description": "validate competitive programming problems",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/crbonilha/cp-validator/issues"
   },
-  "homepage": "https://github.com/crbonilha/cp-validator#readme"
+  "homepage": "https://github.com/crbonilha/cp-validator#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
