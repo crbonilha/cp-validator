@@ -20,11 +20,7 @@ function cloneRepo(
 	});
 }
 
-cloneRepo('https://github.com/crbonilha/cp-validator')
-.then(res => {
-	console.log(res);
-})
-.catch(err => {
-	console.log(err);
-});
+module.exports = {
+	cloneRepo: cloneRepo
+};
 

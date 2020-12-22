@@ -86,7 +86,6 @@ function testSolutions(
 		for (var io of rawIoList) {
 			const inputFile = io.full;
 			const outputFile = io.path + '/' + io.name + '.out';
-			console.log('looking for output file ' + outputFile);
 
 			const outputLs = ls(
 				outputFile,
@@ -117,19 +116,18 @@ function testSolutions(
 		}
 	}
 
-	sequential(runPromises)
-	.then(res => {
-		console.log(res);
-	})
-	.catch(err => {
-		console.log(err);
+	return new Promise((resolve, reject) => {
+		sequential(runPromises)
+		.then(res => {
+			return resolve(res);
+		})
+		.catch(err => {
+			return reject(err);
+		});
 	});
 }
 
-testSolutions(
-	'../example-contest/',
-	/./,
-	/./,
-	/./
-);
+module.exports = {
+	testSolutions: testSolutions
+};
 
