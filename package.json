@@ -20,6 +20,7 @@
   "dependencies": {
     "compile-run": "^2.3.4",
     "express": "^4.17.1",
+    "git-clone": "^0.1.0",
     "ls": "^0.2.1",
     "promise-sequential": "^1.1.1"
   }
