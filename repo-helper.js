@@ -1,125 +1,108 @@
 
-function decodeResponse(
-		encoded) {
-	const buff = new Buffer(encoded, 'base64');
-	return buff.toString('ascii');
-}
-
-async function getFileContent(
-		octokit,
-		owner,
-		repo,
-		path) {
-	const result = await octokit.repos.getContent({
-		owner: owner,
-		repo:  repo,
-		path:  path
-	});
-
-	return decodeResponse(result.data.content);
-}
-
-async function getSolutions(
-		octokit,
-		owner,
-		repo,
-		problem) {
-	const files = await octokit.repos.getContent({
-		owner: owner,
-		repo: repo,
-		path: `problems/${ problem }/solutions`
-	});
-
-	const solutions = [];
-	for (var file of files.data) {
-		solutions.push({
-			name:    file.name,
-			content: await getFileContent(
-				octokit,
-				owner,
-				repo,
-				`problems/${ problem }/solutions/${ file.name }`
-			)
-		});
+class RepoHelper {
+	constructor(octokit, owner, repo, sha) {
+		this.octokit = octokit;
+		this.owner   = owner;
+		this.repo    = repo;
+		this.sha     = sha;
 	}
 
-	return solutions;
-}
+	decodeResponse(
+			encodedMessage) {
+		return (new Buffer(encodedMessage, 'base64').toString('ascii'));
+	}
 
-async function getIoFolderContent(
-		octokit,
-		owner,
-		repo,
-		path) {
-	const files = await octokit.repos.getContent({
-		owner: owner,
-		repo:  repo,
-		path:  path
-	});
+	async getFileContent(
+			path) {
+		const result = await this.octokit.repos.getContent({
+			owner: this.owner,
+			repo:  this.repo,
+			path:  path
+		});
 
-	const ios = [];
-	for (var ioFile of files.data) {
-		if(ioFile.name.indexOf('.in') !== -1) {
-			const outputFileName = ioFile.name.substr(0, ioFile.name.indexOf('.in')) + '.out';
+		return this.decodeResponse(result.data.content);
+	}
 
-			ios.push({
-				input: {
-					name:    ioFile.name,
-					content: await getFileContent(
-						octokit,
-						owner,
-						repo,
-						`${ path }/${ ioFile.name }`
-					)
-				},
-				output: {
-					name:    outputFileName,
-					content: await getFileContent(
-						octokit,
-						owner,
-						repo,
-						`${ path }/${ outputFileName }`
-					)
-				}
+	async getSolutions(
+			problem) {
+		const files = await this.octokit.repos.getContent({
+			owner: this.owner,
+			repo:  this.repo,
+			path:  `problems/${ problem }/solutions`
+		});
+
+		const solutions = [];
+		for (var file of files.data) {
+			solutions.push({
+				name:    file.name,
+				content: await this.getFileContent(
+					`problems/${ problem }/solutions/${ file.name }`
+				)
 			});
 		}
+
+		return solutions;
 	}
 
-	return ios;
-}
+	async getIoFolderContent(
+			path) {
+		const files = await this.octokit.repos.getContent({
+			owner: this.owner,
+			repo:  this.repo,
+			path:  path
+		});
 
-async function getIos(
-		octokit,
-		owner,
-		repo,
-		problem) {
-	const files = await octokit.repos.getContent({
-		owner: owner,
-		repo: repo,
-		path: `problems/${ problem }/io`
-	});
+		const ios = [];
+		for (var ioFile of files.data) {
+			if(ioFile.name.indexOf('.in') !== -1) {
+				const outputFileName =
+					ioFile.name.substr(0, ioFile.name.indexOf('.in')) + '.out';
 
-	var ios = [];
-	for (var ioFolder of files.data) {
-		if(ioFolder.type === 'file') {
+				ios.push({
+					input: {
+						name:    ioFile.name,
+						content: await this.getFileContent(
+							`${ path }/${ ioFile.name }`
+						)
+					},
+					output: {
+						name:    outputFileName,
+						content: await this.getFileContent(
+							`${ path }/${ outputFileName }`
+						)
+					}
+				});
+			}
 		}
-		else if(ioFolder.type === 'dir') {
-			ios = ios.concat(
-				await getIoFolderContent(
-					octokit,
-					owner,
-					repo,
-					`problems/${ problem }/io/${ ioFolder.name }`
-				)
-			);
-		}
+
+		return ios;
 	}
 
-	return ios;
+	async getIos(
+			problem) {
+		const files = await this.octokit.repos.getContent({
+			owner: this.owner,
+			repo:  this.repo,
+			path:  `problems/${ problem }/io`
+		});
+
+		var ios = [];
+		for (var ioFolder of files.data) {
+			if(ioFolder.type === 'file') {
+			}
+			else if(ioFolder.type === 'dir') {
+				ios = ios.concat(
+					await this.getIoFolderContent(
+						`problems/${ problem }/io/${ ioFolder.name }`
+					)
+				);
+			}
+		}
+
+		return ios;
+	}
+
 }
 
-module.exports = {
-	getSolutions: getSolutions,
-	getIos:       getIos
-};
+module.exports = RepoHelper;
 

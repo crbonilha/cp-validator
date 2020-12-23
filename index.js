@@ -6,7 +6,7 @@ const express    = require('express');
 const auth          = require('./auth');
 const cpValidator   = require('./cp-validator');
 const gitManagement = require('./git-management');
-const repoHelper    = require('./repo-helper');
+const RepoHelper    = require('./repo-helper');
 
 const app  = express();
 const port = 3000;
@@ -18,18 +18,19 @@ async function test() {
 	try {
 		const octokit = await auth.getClient(13698200);
 
-		const solutions = await repoHelper.getSolutions(
+		const repoHelper = new RepoHelper(
 			octokit,
 			'crbonilha',
 			'sample-contest',
+			null
+		);
+
+		const solutions = await repoHelper.getSolutions(
 			'sample-problem'
 		);
 		console.log(solutions);
 
 		const ios = await repoHelper.getIos(
-			octokit,
-			'crbonilha',
-			'sample-contest',
 			'sample-problem'
 		);
 		console.log(ios);
