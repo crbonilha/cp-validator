@@ -44,25 +44,47 @@ async function test() {
 		console.log(e);
 	}
 }
-test();
+//test();
 
 app.post('/github', async (req, res) => {
 	console.log('got a post request on github');
 
-	if(req.body !== null && req.body.ref === 'refs/heads/main') {
-		const installationId = req.body.installation.id;
-		try {
-			const octokit = await auth.getClient(installationId);
+	if(req.body === null || req.body.ref !== 'refs/heads/main') {
+		return res.sendStatus(200);
+	}
 
-			const result = await octokit.repos.createCommitComment({
-				owner: req.body.repository.owner.name,
-				repo: req.body.repository.name,
-				commit_sha: req.body.head_commit.id,
-				body: 'testing'
-			});
-		} catch(e) {
-			console.log(e);
-		}
+	const installationId = req.body.installation.id;
+
+	try {
+		const octokit = await auth.getClient(installationId);
+
+		const repoHelper = new RepoHelper(
+			octokit,
+			req.body.repository.owner.name,
+			req.body.repository.name,
+			req.body.head_commit.id
+		);
+
+		const solutions = await repoHelper.getSolutions(
+			'sample-problem'
+		);
+		const ios = await repoHelper.getIos(
+			'sample-problem'
+		);
+
+		const runs = await cpValidator.testSolutions(
+			solutions,
+			ios
+		);
+
+		const result = await octokit.repos.createCommitComment({
+			owner:      req.body.repository.owner.name,
+			repo:       req.body.repository.name,
+			commit_sha: req.body.head_commit.id,
+			body:       JSON.stringify(runs)
+		});
+	} catch(e) {
+		console.log(e);
 	}
 
 	res.sendStatus(200);
