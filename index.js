@@ -53,11 +53,17 @@ app.post('/github', async (req, res) => {
 		return res.sendStatus(200);
 	}
 
-	const installationId = req.body.installation.id;
-
+	var octokit;
 	try {
-		const octokit = await auth.getClient(installationId);
+		const installationId = req.body.installation.id;
+		octokit = await auth.getClient(installationId);
+	} catch(e) {
+		return res.sendStatus(500);
+	}
+	res.sendStatus(200);
 
+	var commitMessage = '';
+	try {
 		const repoHelper = new RepoHelper(
 			octokit,
 			req.body.repository.owner.name,
@@ -77,39 +83,16 @@ app.post('/github', async (req, res) => {
 			ios
 		);
 
-		const result = await octokit.repos.createCommitComment({
-			owner:      req.body.repository.owner.name,
-			repo:       req.body.repository.name,
-			commit_sha: req.body.head_commit.id,
-			body:       JSON.stringify(runs)
-		});
+		commitMessage = `Runs result: ${ JSON.stringify(runs) }`;
 	} catch(e) {
-		console.log(e);
+		commitMessage = e;
 	}
 
-	res.sendStatus(200);
-});
-
-app.post('/webhook', (req, res) => {
-	console.log('got a post request on webhook');
-
-	return res.sendStatus(200);
-
-	gitManagement.cloneRepo(req.body.repository.html_url)
-	.then(targetPath => {
-		return cpValidator.testSolutions(targetPath + '/');
-	})
-	.then(validationResult => {
-		res
-		.status(200)
-		.send(validationResult);
-	})
-	.catch(err => {
-		res
-		.status(500)
-		.send({
-			error: err
-		});
+	const result = await octokit.repos.createCommitComment({
+		owner:      req.body.repository.owner.name,
+		repo:       req.body.repository.name,
+		commit_sha: req.body.head_commit.id,
+		body:       commitMessage
 	});
 });
 
