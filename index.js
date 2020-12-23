@@ -61,6 +61,13 @@ app.post('/github', async (req, res) => {
 	}
 	res.sendStatus(200);
 
+	octokit.repos.createCommitComment({
+		owner:      req.body.repository.owner.name,
+		repo:       req.body.repository.name,
+		commit_sha: req.body.head_commit.id,
+		body:       `Running the CP Validator...`
+	});
+
 	var commitMessage = '# CP Validator results\n\n';
 	try {
 		const repoHelper = new RepoHelper(
