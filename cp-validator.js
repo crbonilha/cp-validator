@@ -1,118 +1,90 @@
 const { cpp }    = require('compile-run');
-const fs         = require('fs');
-const ls         = require('ls');
 const sequential = require('promise-sequential');
 
 function runSolution(
-		solutionPath,
-		inputFilePath,
-		outputFilePath) {
-	return () => {
-		return new Promise((resolve, reject) => {
-			const inputString = fs.readFileSync(inputFilePath, { encoding: 'utf8' });
-			const outputString = fs.readFileSync(outputFilePath, { encoding: 'utf8' });
+		solution,
+		input) {
+	return new Promise((resolve, reject) => {
+		console.log(`Running solution ${ solution.name } on input ${ input.name }.`);
 
-			console.log('about to run ' + solutionPath + ' on input "' + inputString + '"');
-
-			cpp.runFile(
-				solutionPath,
-				{
-					stdin: inputString
-				},
-				(err, result) => {
-					if(err) {
-						return reject(err);
-					}
-
-					result.verdict = 'Unknown';
-
-					if(typeof result.errorType === 'string') {
-						if(result.errorType === 'compile-time') {
-							result.verdict = 'Compilation error';
-						}
-						else if(result.errorType === 'run-time') {
-							result.verdict = 'Runtime error';
-						}
-						else if(result.errorType === 'run-timeout') {
-							result.verdict = 'Time limit exceeded';
-						}
-						else {
-							result.verdict = result.errorType;
-						}
-					}
-					else {
-						if(result.stdout === outputString) {
-							result.verdict = 'Accepted';
-						}
-						else {
-							result.verdict = 'Wrong answer';
-						}
-					}
-
-					return resolve(result);
+		cpp.runSource(
+			solution.content,
+			{
+				stdin: input.content
+			},
+			(err, result) => {
+				if(err) {
+					return reject(err);
 				}
+				resolve(result);
+			}
+		);
+	});
+}
+
+function checkSolutionResult(
+		result,
+		expectedOutput) {
+	return new Promise((resolve, reject) => {
+		result.verdict = 'Unknown';
+
+		if(typeof result.errorType === 'string') {
+			if(result.errorType === 'compile-time') {
+				result.verdict = 'Compilation Error';
+			}
+			else if(result.errorType === 'run-time') {
+				result.verdict = 'Runtime Error';
+			}
+			else if(result.errorType === 'run-timeout') {
+				result.verdict = 'Time Limit Exceeded';
+			}
+			else {
+				result.verdict = result.errorType;
+			}
+		}
+		else {
+			if(result.stdout === expectedOutput) {
+				result.verdict = 'Accepted';
+			}
+			else {
+				result.verdict = 'Wrong Answer';
+			}
+		}
+
+		resolve(result);
+	});
+}
+
+function testSolution(
+		solution,
+		io) {
+	return () => {
+		return runSolution(
+			solution,
+			io.input
+		)
+		.then(result => {
+			return checkSolutionResult(
+				result,
+				io.output.content
 			);
 		});
 	};
 }
 
 function testSolutions(
-		contestPath,
-		problemsFilter,
-		solutionsFilter,
-		ioFilter) {
+		solutions,
+		ios) {
 	const runPromises = [];
 
-	const problemsList = ls(
-		contestPath + 'problems/*',
-		{ type: 'dir' },
-		problemsFilter || /./
-	);
-	for (var problem of problemsList) {
-		console.log('Problem ' + problem.name);
-
-		const solutionsList = ls(
-			problem.full + '/solutions/*',
-			{ type: 'file' },
-			solutionsFilter || /./
-		);
-
-		const rawIoList = ls(
-			problem.full + '/io/*/*.in',
-			{ type: 'file' },
-			ioFilter || /./
-		);
-		const ioList = [];
-		for (var io of rawIoList) {
-			const inputFile = io.full;
-			const outputFile = io.path + '/' + io.name + '.out';
-
-			const outputLs = ls(
-				outputFile,
-				{ type: 'file' }
+	for (var solution of solutions) {
+		for (var io of ios) {
+			runPromises.push(
+				testSolution(
+					solution,
+					io
+				)
 			);
-			if(outputLs.length == 1) {
-				ioList.push({
-					input: io,
-					output: outputLs[0]
-				});
-			}
-		}
-
-		for (var solution of solutionsList) {
-			console.log('Solution ' + solution.name);
-
-			for (var io of ioList) {
-				console.log('Test ' + io.input.name);
-
-				runPromises.push(
-					runSolution(
-						solution.full,
-						io.input.full,
-						io.output.full
-					)
-				);
-			}
 		}
 	}
 
