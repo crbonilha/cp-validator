@@ -62,7 +62,7 @@ app.post('/github', async (req, res) => {
 	}
 	res.sendStatus(200);
 
-	var commitMessage = '';
+	var commitMessage = '**CP Validator results**:\n\n';
 	try {
 		const repoHelper = new RepoHelper(
 			octokit,
@@ -71,19 +71,24 @@ app.post('/github', async (req, res) => {
 			req.body.head_commit.id
 		);
 
-		const solutions = await repoHelper.getSolutions(
-			'sample-problem'
-		);
-		const ios = await repoHelper.getIos(
-			'sample-problem'
-		);
+		const problems = await repoHelper.getProblemNames();
+		for (var problem of problems) {
+			const solutions = await repoHelper.getSolutions(
+				problem
+			);
+			const ios = await repoHelper.getIos(
+				problem
+			);
 
-		const runs = await cpValidator.testSolutions(
-			solutions,
-			ios
-		);
+			const runs = await cpValidator.testSolutions(
+				solutions,
+				ios
+			);
 
-		commitMessage = `Runs result: ${ JSON.stringify(runs) }`;
+			commitMessage += `**Problem ${ problem }**:\n` +
+				JSON.stringify(runs) +
+				`\n\n`;
+		}
 	} catch(e) {
 		commitMessage = e;
 	}

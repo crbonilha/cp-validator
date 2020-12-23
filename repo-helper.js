@@ -17,6 +17,7 @@ class RepoHelper {
 		const result = await this.octokit.repos.getContent({
 			owner: this.owner,
 			repo:  this.repo,
+			ref:   this.sha,
 			path:  path
 		});
 
@@ -28,6 +29,7 @@ class RepoHelper {
 		const files = await this.octokit.repos.getContent({
 			owner: this.owner,
 			repo:  this.repo,
+			ref:   this.sha,
 			path:  `problems/${ problem }/solutions`
 		});
 
@@ -45,10 +47,12 @@ class RepoHelper {
 	}
 
 	async getIoFolderContent(
-			path) {
+			path,
+			namePrefix = '') {
 		const files = await this.octokit.repos.getContent({
 			owner: this.owner,
 			repo:  this.repo,
+			ref:   this.sha,
 			path:  path
 		});
 
@@ -60,13 +64,13 @@ class RepoHelper {
 
 				ios.push({
 					input: {
-						name:    ioFile.name,
+						name:    namePrefix + ioFile.name,
 						content: await this.getFileContent(
 							`${ path }/${ ioFile.name }`
 						)
 					},
 					output: {
-						name:    outputFileName,
+						name:    namePrefix + outputFileName,
 						content: await this.getFileContent(
 							`${ path }/${ outputFileName }`
 						)
@@ -83,6 +87,7 @@ class RepoHelper {
 		const files = await this.octokit.repos.getContent({
 			owner: this.owner,
 			repo:  this.repo,
+			ref:   this.sha,
 			path:  `problems/${ problem }/io`
 		});
 
@@ -93,7 +98,8 @@ class RepoHelper {
 			else if(ioFolder.type === 'dir') {
 				ios = ios.concat(
 					await this.getIoFolderContent(
-						`problems/${ problem }/io/${ ioFolder.name }`
+						`problems/${ problem }/io/${ ioFolder.name }`,
+						`${ ioFolder.name }/`
 					)
 				);
 			}
@@ -102,6 +108,23 @@ class RepoHelper {
 		return ios;
 	}
 
+	async getProblemNames() {
+		const files = await this.octokit.repos.getContent({
+			owner: this.owner,
+			repo:  this.repo,
+			ref:   this.sha,
+			path:  `problems`
+		});
+
+		const dirs = [];
+		for (var file of files.data) {
+			if(file.type === 'dir') {
+				dirs.push(file.name);
+			}
+		}
+
+		return dirs;
+	}
 }
 
 module.exports = RepoHelper;
