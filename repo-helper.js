@@ -70,7 +70,7 @@ class RepoHelper {
 		});
 
 		const ios = [];
-		for (var ioFile of files.data) {
+		for (const ioFile of files.data) {
 			if(ioFile.name.indexOf('.in') !== -1) {
 				const outputFileName =
 					ioFile.name.substr(0, ioFile.name.indexOf('.in')) + '.out';
@@ -115,7 +115,7 @@ class RepoHelper {
 		});
 
 		var ios = [];
-		for (var ioFolder of files.data) {
+		for (const ioFolder of files.data) {
 			if(ioFolder.type === 'file') {
 			}
 			else if(ioFolder.type === 'dir') {
@@ -140,7 +140,7 @@ class RepoHelper {
 		});
 
 		const dirs = [];
-		for (var file of files.data) {
+		for (const file of files.data) {
 			if(file.type === 'dir') {
 				dirs.push(file.name);
 			}

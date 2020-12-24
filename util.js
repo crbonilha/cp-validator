@@ -41,9 +41,22 @@ function writeFile(
 	});
 }
 
+function deleteFile(
+		filePath,
+		verbose = false) {
+	if(verbose === true) {
+		console.log(
+			`Deleting file ${ filePath }.`
+		);
+	}
+
+	fs.unlinkSync(filePath);
+}
+
 module.exports = {
 	getRandomName,
 	getLanguage,
-	writeFile
+	writeFile,
+	deleteFile
 };
 

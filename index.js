@@ -104,6 +104,14 @@ app.post('/github', async (req, res) => {
 				}
 				commitMessage += `\n`;
 			}
+
+			for (const solution of solutions) {
+				solution.destroy();
+			}
+			for (const io of ios) {
+				io.input.destroy();
+				io.output.destroy();
+			}
 		}
 	} catch(e) {
 		commitMessage = e;

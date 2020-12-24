@@ -51,6 +51,24 @@ class Solution {
 
 		return runResponse;
 	}
+
+	destroy() {
+		if(this.filePath !== undefined) {
+			util.deleteFile(
+				this.filePath,
+				this.verbose
+			);
+			this.filePath = undefined;
+		}
+
+		if(this.binPath !== undefined) {
+			util.deleteFile(
+				this.binPath,
+				this.verbose
+			);
+			this.binPath = undefined;
+		}
+	}
 }
 
 module.exports = Solution;

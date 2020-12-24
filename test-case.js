@@ -19,6 +19,14 @@ class TestCase {
 			this.verbose
 		);
 	}
+
+	destroy() {
+		util.deleteFile(
+			this.filePath,
+			this.verbose
+		);
+		this.filePath = undefined;
+	}
 }
 
 module.exports = TestCase;
