@@ -3,10 +3,10 @@ require('dotenv').config();
 const bodyParser = require('body-parser');
 const express    = require('express');
 
-const auth          = require('./auth');
-const cpValidator   = require('./cp-validator');
-const RepoHelper    = require('./repo-helper');
-const Solution      = require('./solution');
+const auth        = require('./lib/auth');
+const cpValidator = require('./lib/cp-validator');
+const RepoHelper  = require('./lib/repo-helper');
+const Solution    = require('./lib/solution');
 
 const app  = express();
 const port = 3000;
