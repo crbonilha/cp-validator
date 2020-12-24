@@ -5,8 +5,8 @@ const express    = require('express');
 
 const auth          = require('./auth');
 const cpValidator   = require('./cp-validator');
-const gitManagement = require('./git-management');
 const RepoHelper    = require('./repo-helper');
+const Solution      = require('./solution');
 
 const app  = express();
 const port = 3000;
@@ -21,7 +21,9 @@ async function test() {
 		const repoHelper = new RepoHelper(
 			octokit,
 			'crbonilha',
-			'sample-contest'
+			'sample-contest',
+			undefined,
+			true
 		);
 
 		const solutions = await repoHelper.getSolutions(
@@ -74,11 +76,12 @@ app.post('/github', async (req, res) => {
 			octokit,
 			req.body.repository.owner.name,
 			req.body.repository.name,
-			req.body.head_commit.id
+			req.body.head_commit.id,
+			true
 		);
 
 		const problems = await repoHelper.getProblemNames();
-		for (var problem of problems) {
+		for (const problem of problems) {
 			commitMessage += `## Problem ${ problem }\n\n`;
 
 			const solutions = await repoHelper.getSolutions(
@@ -94,7 +97,7 @@ app.post('/github', async (req, res) => {
 			);
 
 			commitMessage += `### Solutions\n\n`;
-			for (var solution in runs) {
+			for (const solution in runs) {
 				commitMessage += `**- ${ solution }**:\n`;
 				for (var verdict in runs[solution]) {
 					commitMessage += `${ verdict }: ${ runs[solution][verdict] }\n`;

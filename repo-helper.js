@@ -1,10 +1,19 @@
+const Solution = require('./solution');
+const TestCase = require('./test-case');
+const util     = require('./util');
 
 class RepoHelper {
-	constructor(octokit, owner, repo, sha) {
+	constructor(
+			octokit,
+			owner,
+			repo,
+			sha,
+			verbose = false) {
 		this.octokit = octokit;
 		this.owner   = owner;
 		this.repo    = repo;
 		this.sha     = sha;
+		this.verbose = verbose;
 	}
 
 	decodeResponse(
@@ -34,15 +43,19 @@ class RepoHelper {
 		});
 
 		const solutions = [];
-		for (var file of files.data) {
-			solutions.push({
-				name:    file.name,
-				content: await this.getFileContent(
+		for (const file of files.data) {
+			const newSolution = new Solution(
+				file.name,
+				await this.getFileContent(
 					`problems/${ problem }/solutions/${ file.name }`
-				)
-			});
-		}
+				),
+				util.getLanguage(file.name),
+				this.verbose
+			);
+			await newSolution.init();
 
+			solutions.push(newSolution);
+		}
 		return solutions;
 	}
 
@@ -62,19 +75,29 @@ class RepoHelper {
 				const outputFileName =
 					ioFile.name.substr(0, ioFile.name.indexOf('.in')) + '.out';
 
+				const inputTestCase = new TestCase(
+					namePrefix + ioFile.name,
+					await this.getFileContent(
+						`${ path }/${ ioFile.name }`
+					),
+					'input',
+					this.verbose
+				);
+				await inputTestCase.init();
+
+				const outputTestCase = new TestCase(
+					namePrefix + outputFileName,
+					await this.getFileContent(
+						`${ path }/${ outputFileName }`
+					),
+					'output',
+					this.verbose
+				);
+				await outputTestCase.init();
+
 				ios.push({
-					input: {
-						name:    namePrefix + ioFile.name,
-						content: await this.getFileContent(
-							`${ path }/${ ioFile.name }`
-						)
-					},
-					output: {
-						name:    namePrefix + outputFileName,
-						content: await this.getFileContent(
-							`${ path }/${ outputFileName }`
-						)
-					}
+					input:  inputTestCase,
+					output: outputTestCase
 				});
 			}
 		}
