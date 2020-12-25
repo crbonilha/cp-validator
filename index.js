@@ -14,6 +14,8 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+console.log('testing env variables');
+console.log(process.env.NODE_ENV);
 console.log(process.env.SOME_ARG);
 
 async function test() {
