@@ -14,6 +14,8 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+console.log(process.env.SOME_ARG);
+
 async function test() {
 	try {
 		const octokit = await auth.getClient(13698200);
