@@ -47,6 +47,7 @@ async function test() {
 }
 //test();
 
+app.post('/github', auth.validateWebhookMiddleware);
 app.post('/github', async (req, res) => {
 	console.log('got a post request on github');
 
