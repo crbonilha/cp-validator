@@ -17,6 +17,7 @@ app.use(bodyParser.json());
 console.log('testing env variables');
 console.log(process.env.NODE_ENV);
 console.log(process.env.SOME_ARG);
+console.log(JSON.stringify(process.env));
 
 async function test() {
 	try {

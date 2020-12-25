@@ -11,4 +11,4 @@ RUN npm install --production
 
 COPY . .
 
-CMD export SOME_ARG=$SOME_ARG && node index.js
+CMD SOME_ARG=$SOME_ARG node index.js
