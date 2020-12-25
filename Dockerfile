@@ -1,3 +1,5 @@
+ARG SOME_ARG
+
 FROM node:10.13.0-alpine
 ENV NODE_ENV=production
 
@@ -9,4 +11,4 @@ RUN npm install --production
 
 COPY . .
 
-CMD [ "node", "index.js" ]
+CMD export SOME_ARG=$SOME_ARG && node index.js
