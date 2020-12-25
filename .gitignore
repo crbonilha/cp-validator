@@ -106,4 +106,5 @@ dist
 # My app
 git-repos/*
 lib/temp/*
+temp/*
 

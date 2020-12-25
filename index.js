@@ -14,11 +14,6 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-console.log('testing env variables');
-console.log('node env ' + process.env.NODE_ENV);
-console.log('some arg ' + process.env.SOME_ARG);
-console.log(JSON.stringify(process.env));
-
 async function test() {
 	try {
 		const octokit = await auth.getClient(13698200);
