@@ -5,6 +5,7 @@ const express    = require('express');
 
 const auth        = require('./lib/auth');
 const cpValidator = require('./lib/cp-validator');
+const Tree        = require('./lib/tree');
 const RepoHelper  = require('./lib/repo-helper');
 const Solution    = require('./lib/solution');
 
@@ -46,6 +47,29 @@ async function test() {
 	}
 }
 //test();
+
+async function test2() {
+	try {
+		const octokit = await auth.getClient(13698200);
+
+		const tree = new Tree(
+			octokit,
+			'crbonilha',
+			'sample-contest',
+			'main'
+		);
+		await tree.init();
+		console.log(tree.tree);
+
+		tree.trimTree();
+		console.log(tree.trimmedTree);
+
+		await tree.downloadFiles();
+	} catch(e) {
+		console.log(e);
+	}
+}
+test2();
 
 app.post('/github', auth.validateWebhookMiddleware);
 app.post('/github', async (req, res) => {
