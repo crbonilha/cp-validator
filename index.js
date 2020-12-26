@@ -15,39 +15,6 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-async function test() {
-	try {
-		const octokit = await auth.getClient(13698200);
-
-		const repoHelper = new RepoHelper(
-			octokit,
-			'crbonilha',
-			'sample-contest',
-			undefined,
-			true
-		);
-
-		const solutions = await repoHelper.getSolutions(
-			'sample-problem'
-		);
-		console.log(solutions);
-
-		const ios = await repoHelper.getIos(
-			'sample-problem'
-		);
-		console.log(ios);
-
-		const runs = await cpValidator.testSolutions(
-			solutions,
-			ios
-		);
-		console.log(runs);
-	} catch(e) {
-		console.log(e);
-	}
-}
-//test();
-
 async function test2() {
 	try {
 		const octokit = await auth.getClient(13698200);
@@ -59,12 +26,6 @@ async function test2() {
 			'main'
 		);
 		await tree.init();
-		console.log(tree.tree);
-
-		tree.trimTree();
-		console.log(tree.trimmedTree);
-
-		await tree.downloadFiles();
 	} catch(e) {
 		console.log(e);
 	}
@@ -128,14 +89,6 @@ app.post('/github', async (req, res) => {
 					commitMessage += `${ verdict }: ${ runs[solution][verdict] }\n`;
 				}
 				commitMessage += `\n`;
-			}
-
-			for (const solution of solutions) {
-				solution.destroy();
-			}
-			for (const io of ios) {
-				io.input.destroy();
-				io.output.destroy();
 			}
 		}
 	} catch(e) {
