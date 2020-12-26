@@ -104,7 +104,7 @@ dist
 .tern-port
 
 # Vim temp files
-.swp
+*.swp
 
 # My app
 git-repos/*
