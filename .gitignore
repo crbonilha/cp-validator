@@ -103,6 +103,9 @@ dist
 # TernJS port file
 .tern-port
 
+# Vim temp files
+.swp
+
 # My app
 git-repos/*
 lib/temp/*
