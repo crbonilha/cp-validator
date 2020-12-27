@@ -17,13 +17,13 @@ app.use(bodyParser.json());
 
 async function test2() {
 	try {
-		const octokit = await auth.getClient(13698200);
+		const octokit = await auth.getClient(13698200, ['287727371']);
 
 		const tree = new Tree(
 			octokit,
 			'crbonilha',
-			'sample-contest',
-			'main'
+			'liga-etapa4',
+			'a020a8f7bbbfb09be5ff83cac8c3eac5f183371b'
 		);
 		await tree.init();
 
