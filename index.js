@@ -39,7 +39,7 @@ async function test2() {
 		console.log(e);
 	}
 }
-test2();
+//test2();
 
 app.post('/github', auth.validateWebhookMiddleware);
 app.post('/github', async (req, res) => {
@@ -52,7 +52,11 @@ app.post('/github', async (req, res) => {
 	var octokit;
 	try {
 		const installationId = req.body.installation.id;
-		octokit = await auth.getClient(installationId);
+		const repositoryId = req.body.repository.id;
+		octokit = await auth.getClient(
+			installationId,
+			[ '' + repositoryId ]
+		);
 	} catch(e) {
 		return res.sendStatus(500);
 	}
@@ -67,28 +71,20 @@ app.post('/github', async (req, res) => {
 
 	var commitMessage = '# CP Validator results\n\n';
 	try {
-		const repoHelper = new RepoHelper(
+		const tree = new Tree(
 			octokit,
 			req.body.repository.owner.name,
 			req.body.repository.name,
-			req.body.head_commit.id,
-			true
+			req.body.head_commit.tree_id
 		);
+		await tree.init();
 
-		const problems = await repoHelper.getProblemNames();
-		for (const problem of problems) {
-			commitMessage += `## Problem ${ problem }\n\n`;
-
-			const solutions = await repoHelper.getSolutions(
-				problem
-			);
-			const ios = await repoHelper.getIos(
-				problem
-			);
+		for (const problem of tree.trimmedTree.problems) {
+			commitMessage += `## Problem ${ problem.name }\n\n`;
 
 			const runs = await cpValidator.testSolutions(
-				solutions,
-				ios
+				tree.getSolutions(problem.name),
+				tree.getAllIo(problem.name)
 			);
 
 			commitMessage += `### Solutions\n\n`;
