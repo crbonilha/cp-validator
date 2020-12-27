@@ -26,6 +26,15 @@ async function test2() {
 			'main'
 		);
 		await tree.init();
+
+		for (const problem of tree.trimmedTree.problems) {
+			console.log(`Testing solutions from problem ${ problem.name }.`);
+			const runResult = await cpValidator.testSolutions(
+				tree.getSolutions(problem.name),
+				tree.getAllIo(problem.name)
+			);
+			console.log(runResult);
+		}
 	} catch(e) {
 		console.log(e);
 	}
