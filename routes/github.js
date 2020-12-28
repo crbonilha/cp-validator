@@ -8,11 +8,9 @@ async function pushEvent(
 		res) {
 	var octokit;
 	try {
-		const installationId = req.body.installation.id;
-		const repositoryId = req.body.repository.id;
 		octokit = await auth.getClient(
-			installationId,
-			[ '' + repositoryId ]
+			req.body.installation.id,
+			'' + req.body.repository.id
 		);
 	} catch(e) {
 		return res.sendStatus(500);

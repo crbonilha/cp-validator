@@ -7,7 +7,7 @@ const sigHeaderName = 'X-Hub-Signature';
 
 async function createJWT(
 		installationId,
-		repositoryIds) {
+		repositoryId) {
 	try {
 		const auth = octokitAuthApp.createAppAuth({
 			appId:          process.env.GITHUB_APP_IDENTIFIER,
@@ -19,7 +19,7 @@ async function createJWT(
 		const authResult = await auth({
 			type:           'installation',
 			installationId: installationId,
-			repositoryIds:  repositoryIds
+			repositoryIds:  [ repositoryId ]
 		});
 		return authResult.token;
 	} catch(e) {
@@ -31,8 +31,8 @@ async function createJWT(
 
 async function getClient(
 		installationId,
-		repositoryIds) {
-	const jwt = await createJWT(installationId, repositoryIds);
+		repositoryId) {
+	const jwt = await createJWT(installationId, repositoryId);
 
 	const octokit = new octokitRest.Octokit({
 		auth: jwt
@@ -45,7 +45,7 @@ function validateWebhookMiddleware(req, res, next) {
 	console.log('validating request to github');
 
 	const payload = req.body;
-	if (!payload) {
+	if(!payload) {
 		return next('Request body empty');
 	}
 
@@ -53,8 +53,7 @@ function validateWebhookMiddleware(req, res, next) {
 	const hmac = crypto.createHmac('sha1', process.env.GITHUB_WEBHOOK_SECRET);
 	const digest = Buffer.from('sha1=' + hmac.update(JSON.stringify(payload)).digest('hex'), 'utf8');
 	const checksum = Buffer.from(sig, 'utf8');
-	if (checksum.length !== digest.length || !crypto.timingSafeEqual(digest, checksum)) {
-		console.log('doesnt match');
+	if(checksum.length !== digest.length || !crypto.timingSafeEqual(digest, checksum)) {
 		return next(`Request body digest (${digest}) did not match ${sigHeaderName} (${checksum})`);
 	}
 	return next();
