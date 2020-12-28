@@ -1,5 +1,4 @@
-const cache = require('./cache');
-const util  = require('./util');
+const cache = require('../libs/cache');
 
 class TestCase {
 	constructor(

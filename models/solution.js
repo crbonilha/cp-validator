@@ -1,6 +1,6 @@
-const cache      = require('./cache');
-const execHelper = require('./exec-helper');
-const util       = require('./util');
+const cache      = require('../libs/cache');
+const execHelper = require('../libs/exec-helper');
+const util       = require('../libs/util');
 
 class Solution {
 	constructor(

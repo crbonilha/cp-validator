@@ -1,6 +1,6 @@
-const cache = require('./cache');
-const regex = require('./regex');
-const util  = require('./util');
+const cache = require('../libs/cache');
+const regex = require('../libs/regex');
+const util  = require('../libs/util');
 
 const Solution = require('./solution');
 const TestCase = require('./test-case');
