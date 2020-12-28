@@ -3,11 +3,11 @@ require('dotenv').config();
 const bodyParser = require('body-parser');
 const express    = require('express');
 
-const auth        = require('./lib/auth');
-const cpValidator = require('./lib/cp-validator');
-const Tree        = require('./lib/tree');
-const RepoHelper  = require('./lib/repo-helper');
-const Solution    = require('./lib/solution');
+const auth        = require('./libs/auth');
+const cpValidator = require('./libs/cp-validator');
+const Tree        = require('./libs/tree');
+const RepoHelper  = require('./libs/repo-helper');
+const Solution    = require('./libs/solution');
 
 const app  = express();
 const port = 3000;
