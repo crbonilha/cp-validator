@@ -19,7 +19,7 @@ async function createJWT(
 		const authResult = await auth({
 			type:           'installation',
 			installationId: installationId,
-			repositoryIds:  [ repositoryId ]
+			repositoryIds:  [ '' + repositoryId ]
 		});
 		return authResult.token;
 	} catch(e) {

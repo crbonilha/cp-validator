@@ -1,14 +1,9 @@
-ARG SOME_ARG
+FROM node:10
 
-FROM node:10.13.0-alpine
-ENV NODE_ENV=production
+WORKDIR /usr/src/app
 
-WORKDIR /app
+COPY package*.json ./
 
-COPY ["package.json", "package-lock.json*", "./"]
-
-RUN npm install --production
+RUN npm install
 
 COPY . .
-
-CMD export SOME_ARG=$SOME_ARG && node index.js
