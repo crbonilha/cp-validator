@@ -1,19 +1,17 @@
 
-var Bull;
-try {
-	Bull = require('bull');
-} catch(e) {
-	console.log(e);
-}
+const Bull = require('bull');
 
 const auth        = require('../libs/auth');
 const cpValidator = require('../libs/cp-validator');
 
 const Tree = require('../models/tree');
 
-var validateQueue;
-try {
-	validateQueue = new Bull('validate-queue');
+const validateQueue = new Bull('validate-queue');
+validateQueue.on('error', err => {
+	console.log(err);
+	throw err;
+});
+
 validateQueue.process(async (job) => {
 	return new Promise(async (resolve, reject) => {
 		const octokit = await auth.getClient(
@@ -51,19 +49,24 @@ validateQueue.process(async (job) => {
 		} catch(e) {
 			commitMessage = e;
 		}
-
-		const result = await octokit.repos.createCommitComment({
-			owner:      job.data.owner,
-			repo:       job.data.name,
-			commit_sha: job.data.commit,
-			body:       commitMessage
-		});
+		resolve(commitMessage);
 	});
 });
-} catch(e) {
-	console.log('failed to connect to bull');
-	console.log(e);
-}
+
+validateQueue.on('completed', async (job, result) => {
+	console.log('job completed');
+	const octokit = await auth.getClient(
+		job.data.installationId,
+		job.data.repositoryId
+	);
+
+	await octokit.repos.createCommitComment({
+		owner:      job.data.owner,
+		repo:       job.data.name,
+		commit_sha: job.data.commit,
+		body:       result
+	});
+});
 
 async function pushEvent(
 		req,
@@ -86,7 +89,7 @@ async function pushEvent(
 		body:       `Running the CP Validator...`
 	});
 
-	const validateJob = await validateQueue.add({
+	validateQueue.add({
 		installationId: req.body.installation.id,
 		repositoryId:   req.body.repository.id,
 		owner:          req.body.repository.owner.name,
@@ -98,24 +101,14 @@ async function pushEvent(
 
 async function test2() {
 	try {
-		const octokit = await auth.getClient(13698200, ['287727371']);
-
-		const tree = new Tree(
-			octokit,
-			'crbonilha',
-			'liga-etapa4',
-			'a020a8f7bbbfb09be5ff83cac8c3eac5f183371b'
-		);
-		await tree.init();
-
-		for (const problem of tree.trimmedTree.problems) {
-			console.log(`Testing solutions from problem ${ problem.name }.`);
-			const runResult = await cpValidator.testSolutions(
-				tree.getSolutions(problem.name),
-				tree.getAllIo(problem.name)
-			);
-			console.log(runResult);
-		}
+		validateQueue.add({
+			installationId: 13698200,
+			repositoryId:   287727371,
+			owner:          'crbonilha',
+			name:           'sample-contest',
+			commit:         '04542a3cd962a399bcab071a93307a9cefe30e6e',
+			tree:           'e12d8b2406ecf1bf40cda25ed5571b0c6ff16d12'
+		});
 	} catch(e) {
 		console.log(e);
 	}

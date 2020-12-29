@@ -28,6 +28,8 @@ class Tree {
 		this.tree = response.data.tree;
 
 		this.trimTree();
+
+		await this.downloadFiles();
 	}
 
 	getBlob(
