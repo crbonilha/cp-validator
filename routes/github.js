@@ -6,7 +6,7 @@ const cpValidator = require('../libs/cp-validator');
 
 const Tree = require('../models/tree');
 
-const validateQueue = new Bull('validate-queue');
+const validateQueue = new Bull('validate-queue', process.env.REDIS_URL);
 validateQueue.on('error', err => {
 	console.log(err);
 	throw err;
@@ -113,7 +113,7 @@ async function test2() {
 		console.log(e);
 	}
 }
-//test2();
+test2();
 
 module.exports = {
 	pushEvent
