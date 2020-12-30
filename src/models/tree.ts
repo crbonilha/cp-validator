@@ -1,16 +1,24 @@
-const cache = require('../libs/cache');
-const regex = require('../libs/regex');
-const util  = require('../libs/util');
+import * as cache from "../libs/cache";
+import * as regex from "../libs/regex";
+import * as util from "../libs/util";
 
-const Solution = require('./solution');
-const TestCase = require('./test-case');
+import Solution from "./solution";
+import TestCase from "./test-case";
 
-class Tree {
+export default class Tree {
+	readonly octokit: any;
+	readonly owner: string;
+	readonly repo: string;
+	readonly sha: string;
+
+	private tree: any;
+	private trimmedTree: any;
+
 	constructor(
-			octokit,
-			owner,
-			repo,
-			sha) {
+			octokit: any,
+			owner: string,
+			repo: string,
+			sha: string) {
 		this.octokit = octokit;
 		this.owner   = owner;
 		this.repo    = repo;
@@ -33,7 +41,7 @@ class Tree {
 	}
 
 	getBlob(
-			file_sha) {
+			file_sha: string) {
 		console.log(`Downloading ${ file_sha }.`);
 		return this.octokit.git.getBlob({
 			owner:    this.owner,
@@ -144,7 +152,7 @@ class Tree {
 	}
 
 	getSolutions(
-			problemName) {
+			problemName: string[]) {
 		if(this.trimmedTree === undefined) {
 			throw `Trying to get solutions before trimming the tree.`;
 		}
@@ -154,7 +162,7 @@ class Tree {
 	}
 
 	getAllIo(
-			problemName) {
+			problemName: string[]) {
 		if(this.trimmedTree === undefined) {
 			throw `Trying to get io before trimming the tree.`;
 		}
@@ -165,6 +173,4 @@ class Tree {
 		}, []);
 	}
 }
-
-module.exports = Tree;
 

@@ -1,12 +1,17 @@
-const cache      = require('../libs/cache');
-const execHelper = require('../libs/exec-helper');
-const util       = require('../libs/util');
+import * as cache from "../libs/cache";
+import * as execHelper from "../libs/exec-helper";
+import * as util from "../libs/util";
 
-class Solution {
+export default class Solution {
+	readonly sha: string;
+	readonly name: string;
+	readonly language: string;
+	readonly verbose: boolean;
+
 	constructor(
-			sha,
-			name,
-			verbose = false) {
+			sha: string,
+			name: string,
+			verbose: boolean = false) {
 		this.sha      = sha;
 		this.name     = name;
 		this.language = util.getLanguage(this.name);
@@ -52,6 +57,4 @@ class Solution {
 		return runResponse;
 	}
 }
-
-module.exports = Solution;
 
