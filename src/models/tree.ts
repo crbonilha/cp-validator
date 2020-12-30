@@ -12,7 +12,7 @@ export default class Tree {
 	readonly sha: string;
 
 	private tree: any;
-	private trimmedTree: any;
+	trimmedTree: any;
 
 	constructor(
 			octokit: any,

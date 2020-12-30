@@ -29,7 +29,7 @@ async function createJWT(
 	}
 }
 
-async function getClient(
+export async function getClient(
 		installationId: number,
 		repositoryId: number) {
 	const jwt = await createJWT(installationId, repositoryId);
@@ -41,7 +41,7 @@ async function getClient(
 	return octokit;
 }
 
-function validateWebhookMiddleware(
+export function validateWebhookMiddleware(
 		req,
 		res,
 		next) {
@@ -61,9 +61,4 @@ function validateWebhookMiddleware(
 	}
 	return next();
 }
-
-module.exports = {
-	getClient,
-	validateWebhookMiddleware
-};
 

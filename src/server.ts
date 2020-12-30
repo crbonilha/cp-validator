@@ -1,14 +1,15 @@
-require('dotenv').config();
+import * as dotenv from "dotenv";
+dotenv.config();
 
-const bodyParser = require('body-parser');
-const express    = require('express');
+import * as bodyParser from "body-parser";
+import * as express from "express";
 
-const auth        = require('./libs/auth');
+import * as auth from "./libs/auth";
 
-const routeGithub = require('./routes/github');
+import * as routeGithub from "./routes/github";
 
-const app  = express();
-const port = 3000;
+const app: any = express();
+const port: number = 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());

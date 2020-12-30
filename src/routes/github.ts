@@ -1,12 +1,11 @@
+import Bull from "bull";
 
-const Bull = require('bull');
+import * as auth from "../libs/auth";
+import * as cpValidator from "../libs/cp-validator";
 
-const auth        = require('../libs/auth');
-const cpValidator = require('../libs/cp-validator');
+import Tree from "../models/tree";
 
-const Tree = require('../models/tree');
-
-const validateQueue = new Bull('validate-queue', process.env.REDIS_URL);
+const validateQueue: any = new Bull('validate-queue', process.env.REDIS_URL);
 validateQueue.on('error', err => {
 	console.log(err);
 	throw err;
@@ -32,7 +31,7 @@ validateQueue.process(async (job) => {
 			for (const problem of tree.trimmedTree.problems) {
 				commitMessage += `## Problem ${ problem.name }\n\n`;
 
-				const runs = await cpValidator.testSolutions(
+				const runs: any = await cpValidator.testSolutions(
 					tree.getSolutions(problem.name),
 					tree.getAllIo(problem.name)
 				);
@@ -68,7 +67,7 @@ validateQueue.on('completed', async (job, result) => {
 	});
 });
 
-async function pushEvent(
+export async function pushEvent(
 		req,
 		res) {
 	var octokit;
@@ -114,8 +113,4 @@ async function test2() {
 	}
 }
 test2();
-
-module.exports = {
-	pushEvent
-};
 
