@@ -1,32 +1,32 @@
-const fs = require('fs');
+import * as fs from "fs";
 
-const util = require('./util');
+import * as util from "./util";
 
 const tempDir = './temp';
 
-function getFilePath(
-		sha,
-		fileName) {
+export function getFilePath(
+		sha: string,
+		fileName: string) {
 	return `${ tempDir }/${ sha }-${ fileName }`;
 }
 
-function fileExists(
-		sha,
-		fileName) {
+export function fileExists(
+		sha: string,
+		fileName: string) {
 	return fs.existsSync(
 		getFilePath(sha, fileName)
 	);
 }
 
-function fileAtPathExists(
-		path) {
+export function fileAtPathExists(
+		path: string) {
 	return fs.existsSync(path);
 }
 
-function saveFile(
-		sha,
-		fileName,
-		content) {
+export function saveFile(
+		sha: string,
+		fileName: string,
+		content: string) {
 	return new Promise((resolve, reject) => {
 		if(!fs.existsSync(tempDir)) {
 			fs.mkdirSync(tempDir);
@@ -50,10 +50,10 @@ function saveFile(
 	});
 }
 
-async function checkAndMaybeDownload(
-		sha,
-		fileName,
-		downloadCallback) {
+export async function checkAndMaybeDownload(
+		sha: string,
+		fileName: string,
+		downloadCallback: () => any) {
 	if(fileExists(sha, fileName)) {
 		return;
 	}
@@ -63,9 +63,9 @@ async function checkAndMaybeDownload(
 	await saveFile(sha, fileName, decodedResponse);
 }
 
-function getFileContent(
-		sha,
-		fileName) {
+export function getFileContent(
+		sha: string,
+		fileName: string) {
 	return fs.readFileSync(
 		getFilePath(sha, fileName),
 		{
@@ -73,13 +73,4 @@ function getFileContent(
 		}
 	);
 }
-
-module.exports = {
-	getFilePath,
-	fileExists,
-	fileAtPathExists,
-	saveFile,
-	checkAndMaybeDownload,
-	getFileContent
-};
 

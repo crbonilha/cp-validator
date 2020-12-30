@@ -1,20 +1,15 @@
-const childProcess = require('child_process');
-const fs           = require('fs');
+import { exec, spawn } from "child_process";
+import { createReadStream } from "fs";
 
-function getCompileOutputPath(
-		codePath) {
+export function getCompileOutputPath(
+		codePath: string): string {
 	return `${ codePath }.exe`;
 }
 
-/**
- * @param codePath the path of the file to be compiled.
- * @param language the name of the language to compile the code.
- * @returns Promise({ binPath })
- */
-function compile(
-		codePath,
-		language,
-		verbose = false) {
+export function compile(
+		codePath: string,
+		language: string,
+		verbose: boolean = false) {
 	return new Promise((resolve, reject) => {
 		const binPath = getCompileOutputPath(codePath);
 
@@ -32,7 +27,7 @@ function compile(
 			);
 		}
 
-		childProcess.exec(
+		exec(
 			compileCmd,
 			{
 				timeout: 10000
@@ -51,15 +46,10 @@ function compile(
 	});
 }
 
-/**
- * @param binPath the path of the bin to be executed.
- * @param inputPath the path of the input to be sent to the binary.
- * @returns Promise({ output })
- */
-async function run(
-		binPath,
-		inputPath,
-		verbose = false) {
+export async function run(
+		binPath: string,
+		inputPath: string,
+		verbose: boolean = false) {
 	return new Promise((resolve, reject) => {
 		if(verbose === true) {
 			console.log(
@@ -68,14 +58,14 @@ async function run(
 		}
 
 		try {
-			const ps = childProcess.spawn(binPath);
+			const ps = spawn(binPath);
 
 			var stdout = '';
 			ps.stdout.on('data', data => {
 				stdout += data;
 			});
 
-			ps.stdin.on('error', err => {
+			ps.stdin.on('error', (err: any) => {
 				if(err.code === 'EPIPE') {
 					// time limit exceeded.
 				}
@@ -122,7 +112,7 @@ async function run(
 				});
 			});
 
-			fs.createReadStream(inputPath).pipe(ps.stdin);
+			createReadStream(inputPath).pipe(ps.stdin);
 
 			setTimeout(() => {
 				ps.kill();
@@ -138,10 +128,4 @@ async function run(
 		}
 	});
 }
-
-module.exports = {
-	getCompileOutputPath,
-	compile,
-	run
-};
 

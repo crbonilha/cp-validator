@@ -1,26 +1,26 @@
-const crypto = require('crypto');
-const fs     = require('fs');
+import { randomBytes } from "crypto";
+import * as fs from "fs";
 
 const tempDir = './temp';
 
-function getRandomName(
-		length = 10) {
-	return crypto.randomBytes(length).toString('hex');
+export function getRandomName(
+		length: number = 10) {
+	return randomBytes(length).toString('hex');
 }
 
-function getLanguage(
-		fileName) {
+export function getLanguage(
+		fileName: string) {
 	return fileName.substr(fileName.indexOf('.')+1);
 }
 
-function decodeResponse(
-		encodedMessage,
-		base = 'base64') {
+export function decodeResponse(
+		encodedMessage: string,
+		base: BufferEncoding = 'base64') {
 	return (new Buffer(encodedMessage, base).toString('ascii'));
 }
 
-function getFileNameFromPath(
-		path) {
+export function getFileNameFromPath(
+		path: string) {
 	if(path.lastIndexOf('/') === -1) {
 		return path;
 	}
@@ -29,10 +29,10 @@ function getFileNameFromPath(
 	}
 }
 
-function writeFile(
-		content,
-		nameSuffix = '',
-		verbose = false) {
+export function writeFile(
+		content: string,
+		nameSuffix: string = '',
+		verbose: boolean = false) {
 	return new Promise((resolve, reject) => {
 		if(!fs.existsSync(tempDir)) {
 			fs.mkdirSync(tempDir);
@@ -63,9 +63,9 @@ function writeFile(
 	});
 }
 
-function deleteFile(
-		filePath,
-		verbose = false) {
+export function deleteFile(
+		filePath: string,
+		verbose: boolean = false) {
 	if(verbose === true) {
 		console.log(
 			`Deleting file ${ filePath }.`

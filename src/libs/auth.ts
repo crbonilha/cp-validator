@@ -1,13 +1,13 @@
-const crypto = require('crypto');
+import * as crypto from "crypto";
 
-const octokitAuthApp = require('@octokit/auth-app');
-const octokitRest    = require('@octokit/rest');
+import * as octokitAuthApp from "@octokit/auth-app";
+import * as octokitRest from "@octokit/rest";
 
-const sigHeaderName = 'X-Hub-Signature';
+const sigHeaderName: string = 'X-Hub-Signature';
 
 async function createJWT(
-		installationId,
-		repositoryId) {
+		installationId: number,
+		repositoryId: number) {
 	try {
 		const auth = octokitAuthApp.createAppAuth({
 			appId:          process.env.GITHUB_APP_IDENTIFIER,
@@ -19,7 +19,7 @@ async function createJWT(
 		const authResult = await auth({
 			type:           'installation',
 			installationId: installationId,
-			repositoryIds:  [ '' + repositoryId ]
+			repositoryIds:  [ repositoryId ]
 		});
 		return authResult.token;
 	} catch(e) {
@@ -30,8 +30,8 @@ async function createJWT(
 }
 
 async function getClient(
-		installationId,
-		repositoryId) {
+		installationId: number,
+		repositoryId: number) {
 	const jwt = await createJWT(installationId, repositoryId);
 
 	const octokit = new octokitRest.Octokit({
@@ -41,7 +41,10 @@ async function getClient(
 	return octokit;
 }
 
-function validateWebhookMiddleware(req, res, next) {
+function validateWebhookMiddleware(
+		req,
+		res,
+		next) {
 	console.log('validating request to github');
 
 	const payload = req.body;

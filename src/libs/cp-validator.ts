@@ -1,9 +1,9 @@
-const sequential = require('promise-sequential');
+import * as sequential from "promise-sequential";
 
-const execHelper = require('./exec-helper');
+import * as execHelper from "./exec-helper";
 
 function aggregateResult(
-		runs) {
+		runs: any[]) {
 	const aggregatedResult = {};
 	for(var run of runs) {
 		if(aggregatedResult[ run.solution ] === undefined) {
@@ -22,8 +22,8 @@ function aggregateResult(
 }
 
 function testSolution(
-		solution,
-		io) {
+		solution: any,
+		io: any) {
 	return async () => {
 		console.log(`Running solution ${ solution.name } on input ${ io.in.name }.`);
 		const runResult = await solution.run(io.in);
@@ -59,9 +59,9 @@ function testSolution(
 	};
 }
 
-async function testSolutions(
-		solutions,
-		ios) {
+export async function testSolutions(
+		solutions: any[],
+		ios: any[]) {
 	const runPromises = [];
 
 	for (const solution of solutions) {
@@ -99,8 +99,4 @@ async function testSolutions(
 		});
 	});
 }
-
-module.exports = {
-	testSolutions: testSolutions
-};
 
