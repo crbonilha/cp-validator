@@ -3,7 +3,7 @@ version: '2'
 services:
   app:
     build: .
-    command: node index.js
+    command: npm run start
     volumes:
       - .:/usr/src/app
     ports:
