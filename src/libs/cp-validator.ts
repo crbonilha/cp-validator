@@ -90,7 +90,7 @@ export async function testSolutions(
 	}
 
 	return new Promise((resolve, reject) => {
-		sequential(runPromises)
+		sequential.default(runPromises)
 		.then(runs => {
 			return resolve(aggregateResult(runs));
 		})

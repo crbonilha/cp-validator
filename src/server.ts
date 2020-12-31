@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import * as bodyParser from "body-parser";
-import * as express from "express";
+import express from "express";
 
 import * as auth from "./libs/auth";
 

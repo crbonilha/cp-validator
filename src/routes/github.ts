@@ -112,5 +112,5 @@ async function test2() {
 		console.log(e);
 	}
 }
-test2();
+//test2();
 

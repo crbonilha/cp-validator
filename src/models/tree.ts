@@ -54,6 +54,7 @@ export default class Tree {
 		if(this.tree === undefined) {
 			throw `Trying to download files from tree before initializing the tree.`;
 		}
+		console.log(`Trimming tree.`);
 
 		this.trimmedTree = {
 			problems: []
