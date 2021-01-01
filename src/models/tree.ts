@@ -6,21 +6,43 @@ import Solution from "./solution";
 import TestCase from "./test-case";
 
 
+interface IoInterface {
+	'number': number;
+	in?: TestCase;
+	out?: TestCase;
+};
+
+interface IoFolderInterface {
+	folder: number;
+	io: IoInterface[];
+}
+
+interface ProblemInterface {
+	name: string;
+	solutions: Solution[];
+	io: IoFolderInterface[];
+}
+
+interface TreeInterface {
+	problems: ProblemInterface[];
+}
+
+
 export default class Tree {
 	readonly octokit: any;
-	readonly owner: string;
-	readonly repo: string;
-	readonly sha: string;
+	readonly owner:   string;
+	readonly repo:    string;
+	readonly sha:     string;
 
-	private tree: any;
-	private trimmedTree: any;
+	private tree:        any;
+	private trimmedTree: TreeInterface;
 
 
 	constructor(
 		octokit: any,
-		owner: string,
-		repo: string,
-		sha: string
+		owner:   string,
+		repo:    string,
+		sha:     string
 	) {
 		this.octokit = octokit;
 		this.owner   = owner;

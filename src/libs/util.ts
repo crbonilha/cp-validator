@@ -2,7 +2,7 @@ import { randomBytes } from "crypto";
 import * as fs from "fs";
 
 
-const tempDir = './temp';
+const tempDir: string = './temp';
 
 
 export function getRandomName(
