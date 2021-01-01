@@ -1,12 +1,15 @@
 
 // sample: problems/some-problem/...
-const problemRegex = /^problems\/([\w-]+)\//i;
+const problemRegex: RegExp = /^problems\/([\w-]+)\//i;
 
 // sample: problems/some-problem/solutions/cristhian-ac.cpp
-const solutionRegex = /^problems\/([\w-]+)\/solutions\/([\w-]+\.\w+)$/i;
+const solutionRegex: RegExp = /^problems\/([\w-]+)\/solutions\/([\w-]+\.\w+)$/i;
 
 // sample: problems/some-problem/io/2/3.in
-const ioRegex = /^problems\/([\w-]+)\/io\/(\d)\/(\d)\.(in|out)$/i;
+const ioRegex: RegExp = /^problems\/([\w-]+)\/io\/(\d)\/(\d)\.(in|out)$/i;
+
+// sample: problems/some-problem/validators/positive-number.cpp
+const validatorRegex: RegExp = /^problems\/([\w-]+)\/validators\/(\w-]+\.\w+)$/i;
 
 
 export function isSolutionFile(
@@ -20,6 +23,13 @@ export function isIoFile(
 	str: string
 ): boolean {
 	return ioRegex.test(str);
+}
+
+
+export function isValidatorFile(
+	str: string
+): boolean {
+	return validatorRegex.test(str);
 }
 
 
@@ -58,6 +68,21 @@ export function getIo(
 		folder:  regexResponse[2],
 		number:  regexResponse[3],
 		type:    regexResponse[4]
+	};
+}
+
+
+export function getValidator(
+	str: string
+): any {
+	if(!isValidatorFile(str)) {
+		throw `Trying to get validator, but the path doesn't match a validator regex.`;
+	}
+
+	const regexResponse = validatorRegex.exec(str);
+	return {
+		problem:   regexResponse[1],
+		validator: regexResponse[2]
 	};
 }
 
