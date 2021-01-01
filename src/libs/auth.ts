@@ -1,5 +1,6 @@
 import * as crypto from "crypto";
 
+import express from "express";
 import { createAppAuth } from "@octokit/auth-app";
 import * as octokitRest from "@octokit/rest";
 
@@ -48,9 +49,9 @@ export async function getClient(
 
 
 export function validateWebhookMiddleware(
-	req,
-	res,
-	next
+	req: express.Request,
+	res: express.Response,
+	next: express.NextFunction
 ): void {
 	console.log('validating request to github');
 
