@@ -1,9 +1,11 @@
 import Bull from "bull";
+import express from "express";
 
 import * as auth from "../libs/auth";
 import * as cpValidator from "../libs/cp-validator";
 
 import Tree from "../models/tree";
+
 
 const validateQueue: any = new Bull('validate-queue', process.env.REDIS_URL);
 validateQueue.on('error', err => {
@@ -11,16 +13,17 @@ validateQueue.on('error', err => {
 	throw err;
 });
 
+
 validateQueue.process(async (job) => {
 	return new Promise(async (resolve, reject) => {
-		const octokit = await auth.getClient(
+		const octokit: any = await auth.getClient(
 			job.data.installationId,
 			job.data.repositoryId
 		);
 
-		var commitMessage = '# CP Validator results\n\n';
+		var commitMessage: string = '# CP Validator results\n\n';
 		try {
-			const tree = new Tree(
+			const tree: Tree = new Tree(
 				octokit,
 				job.data.owner,
 				job.data.name,
@@ -52,9 +55,10 @@ validateQueue.process(async (job) => {
 	});
 });
 
+
 validateQueue.on('completed', async (job, result) => {
 	console.log('job completed');
-	const octokit = await auth.getClient(
+	const octokit: any = await auth.getClient(
 		job.data.installationId,
 		job.data.repositoryId
 	);
@@ -67,17 +71,22 @@ validateQueue.on('completed', async (job, result) => {
 	});
 });
 
+
 export async function pushEvent(
-		req,
-		res) {
-	var octokit;
+	req: express.Request,
+	res: express.Response
+): Promise<void> {
+	var octokit: any;
+
 	try {
 		octokit = await auth.getClient(
 			req.body.installation.id,
 			req.body.repository.id
 		);
 	} catch(e) {
-		return res.sendStatus(500);
+		return Promise.reject(
+			res.sendStatus(500)
+		);
 	}
 	res.sendStatus(200);
 
@@ -97,6 +106,7 @@ export async function pushEvent(
 		tree:           req.body.head_commit.tree_id
 	});
 }
+
 
 async function test2() {
 	try {
