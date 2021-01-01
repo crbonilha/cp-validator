@@ -34,6 +34,14 @@ app.post('/github', (
 });
 
 
+app.get('/', (
+	req: express.Request,
+	res: express.Response
+) => {
+	return res.status(200).send('all good');
+});
+
+
 app.listen(port, () => {
 	console.log('listening on port ' + port);
 });
