@@ -1,6 +1,8 @@
 import * as cache from "../libs/cache";
 import * as execHelper from "../libs/exec-helper";
 import * as util from "../libs/util";
+import TestCase from "./test-case";
+
 
 export default class Solution {
 	readonly sha: string;
@@ -8,17 +10,19 @@ export default class Solution {
 	readonly language: string;
 	readonly verbose: boolean;
 
+
 	constructor(
-			sha: string,
-			name: string,
-			verbose: boolean = false) {
+		sha: string,
+		name: string,
+		verbose: boolean = false
+	) {
 		this.sha      = sha;
 		this.name     = name;
 		this.language = util.getLanguage(this.name);
 		this.verbose  = verbose;
 	}
 
-	hasCodeBeenCompiled() {
+	hasCodeBeenCompiled(): boolean {
 		return cache.fileAtPathExists(
 			execHelper.getCompileOutputPath(
 				cache.getFilePath(this.sha, this.name)
@@ -26,7 +30,8 @@ export default class Solution {
 		);
 	}
 
-	async compile() {
+
+	async compile(): Promise<void> {
 		if(!cache.fileExists(this.sha, this.name)) {
 			throw `Trying to compile solution before downloading it.`;
 		}
@@ -40,13 +45,15 @@ export default class Solution {
 		}
 	}
 
+
 	async run(
-			testCase) {
+		testCase: TestCase
+	): Promise<any> {
 		if(!this.hasCodeBeenCompiled()) {
 			throw `Trying to run solution before compiling it.`;
 		}
 
-		const runResponse = await execHelper.run(
+		const runResponse: any = await execHelper.run(
 			execHelper.getCompileOutputPath(
 				cache.getFilePath(this.sha, this.name)
 			),

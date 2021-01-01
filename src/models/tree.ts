@@ -5,6 +5,7 @@ import * as util from "../libs/util";
 import Solution from "./solution";
 import TestCase from "./test-case";
 
+
 export default class Tree {
 	readonly octokit: any;
 	readonly owner: string;
@@ -14,19 +15,22 @@ export default class Tree {
 	private tree: any;
 	trimmedTree: any;
 
+
 	constructor(
-			octokit: any,
-			owner: string,
-			repo: string,
-			sha: string) {
+		octokit: any,
+		owner: string,
+		repo: string,
+		sha: string
+	) {
 		this.octokit = octokit;
 		this.owner   = owner;
 		this.repo    = repo;
 		this.sha     = sha;
 	}
 
-	async init() {
-		const response = await this.octokit.git.getTree({
+
+	async init(): Promise<void> {
+		const response: any = await this.octokit.git.getTree({
 			owner:     this.owner,
 			repo:      this.repo,
 			tree_sha:  this.sha,
@@ -40,8 +44,10 @@ export default class Tree {
 		await this.downloadFiles();
 	}
 
+
 	getBlob(
-			file_sha: string) {
+		file_sha: string
+	): Promise<any> {
 		console.log(`Downloading ${ file_sha }.`);
 		return this.octokit.git.getBlob({
 			owner:    this.owner,
@@ -50,7 +56,8 @@ export default class Tree {
 		});
 	}
 
-	trimTree() {
+
+	trimTree(): void {
 		if(this.tree === undefined) {
 			throw `Trying to download files from tree before initializing the tree.`;
 		}
@@ -66,7 +73,7 @@ export default class Tree {
 			}
 
 			if(!regex.isSolutionFile(treeItem.path) &&
-			!regex.isIoFile(treeItem.path)) {
+				!regex.isIoFile(treeItem.path)) {
 				continue;
 			}
 
@@ -117,7 +124,8 @@ export default class Tree {
 		}
 	}
 
-	async downloadFiles() {
+
+	async downloadFiles(): Promise<void> {
 		if(this.trimmedTree === undefined) {
 			throw `Trying to download files from tree before trimming it.`;
 		}
@@ -152,23 +160,27 @@ export default class Tree {
 		}
 	}
 
+
 	getSolutions(
-			problemName: string[]) {
+		problemName: string[]
+	): any[] {
 		if(this.trimmedTree === undefined) {
 			throw `Trying to get solutions before trimming the tree.`;
 		}
 
-		const problem = this.trimmedTree.problems.find(problem => problem.name === problemName);
+		const problem: any = this.trimmedTree.problems.find(problem => problem.name === problemName);
 		return problem.solutions;
 	}
 
+
 	getAllIo(
-			problemName: string[]) {
+		problemName: string[]
+	): any[] {
 		if(this.trimmedTree === undefined) {
 			throw `Trying to get io before trimming the tree.`;
 		}
 
-		const problem = this.trimmedTree.problems.find(problem => problem.name === problemName);
+		const problem: any = this.trimmedTree.problems.find(problem => problem.name === problemName);
 		return problem.io.reduce((acc, cur) => {
 			return acc.concat(cur.io);
 		}, []);
