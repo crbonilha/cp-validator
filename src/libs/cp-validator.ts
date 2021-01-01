@@ -1,72 +1,140 @@
 import sequential from "promise-sequential";
 
+import { IoInterface } from "../models/tree";
+import Solution from "../models/solution";
+
+
+enum Verdict {
+	accepted,
+		wrongAnswer,
+		timeLimitExceeded,
+		segmentationFault,
+		compilationError,
+		aborted,
+		other,
+}
+
+interface SolutionRun {
+	solutionName: string;
+	verdict:      Verdict;
+	testCaseName: string;
+}
+
+interface VerdictCount {
+	count:         number;
+	testCaseNames: string[];
+}
+
+interface AggregatedVerdict {
+	solutionName:       string;
+	total:              number;
+	accepted?:          VerdictCount;
+	wrongAnswer?:       VerdictCount;
+	timeLimitExceeded?: VerdictCount;
+	segmentationFault?: VerdictCount;
+	compilationError?:  VerdictCount;
+	aborted?:           VerdictCount;
+}
+
+
+function incrementVerdictCount(
+	aggregatedVerdict: AggregatedVerdict,
+	verdict:           Verdict,
+	testCaseName?:     string
+): VerdictCount {
+	if(aggregatedVerdict[ verdict ] === undefined) {
+		aggregatedVerdict[ verdict ] = {
+			count:         0,
+			testCaseNames: []
+		}
+	}
+
+	aggregatedVerdict[ verdict ].count++;
+
+	if(testCaseName !== undefined) {
+		aggregatedVerdict[ verdict ].testCaseNames.push(testCaseName);
+	}
+
+	return aggregatedVerdict[ verdict ];
+}
+
 
 function aggregateResult(
-	runs: any[]
-): any {
-	const aggregatedResult: any = {};
-	for(var run of runs) {
-		if(aggregatedResult[ run.solution ] === undefined) {
-			aggregatedResult[ run.solution ] = {
-				Total: 0
-			};
+	runs: SolutionRun[]
+): AggregatedVerdict[] {
+	const aggregatedVerdicts: AggregatedVerdict[] = [];
+	for(const run of runs) {
+		if(!aggregatedVerdicts.some(av => av.solutionName === run.solutionName)) {
+			aggregatedVerdicts.push({
+				solutionName: run.solutionName,
+				total:        0
+			});
 		}
-		aggregatedResult[ run.solution ].Total++;
+		const aggregatedVerdict: AggregatedVerdict =
+			aggregatedVerdicts.find(av => av.solutionName === run.solutionName);
 
-		if(aggregatedResult[ run.solution ][ run.verdict ] === undefined) {
-			aggregatedResult[ run.solution ][ run.verdict ] = 0;
+		aggregatedVerdict.total++;
+		if(run.verdict === Verdict.accepted) {
+			aggregatedVerdict.accepted = incrementVerdictCount(
+				aggregatedVerdict,
+				Verdict.accepted
+			);
 		}
-		aggregatedResult[ run.solution ][ run.verdict ]++;
+		else {
+			aggregatedVerdict[ run.verdict ] = incrementVerdictCount(
+				aggregatedVerdict,
+				run.verdict,
+				run.testCaseName
+			);
+		}
 	}
-	return aggregatedResult;
+	return aggregatedVerdicts;
 }
 
 
 function testSolution(
-	solution: any,
-	io: any
-): any {
+	solution: Solution,
+	io:       IoInterface
+): () => Promise<SolutionRun> {
 	return async () => {
 		console.log(`Running solution ${ solution.name } on input ${ io.in.name }.`);
 		const runResult: any = await solution.run(io.in);
 
-		var verdict: string = 'Unknown';
+		var verdict: Verdict = Verdict.other;
 		if(runResult.error) {
 			if(runResult.signal === 'SIGTERM') {
-				verdict = 'Time Limit Exceeded';
+				verdict = Verdict.timeLimitExceeded;
 			}
 			else if(runResult.signal === 'SIGSEGV') {
-				verdict = 'Segmentation Fault';
+				verdict = Verdict.segmentationFault;
 			}
 			else if(runResult.signal === 'SIGABRT') {
-				verdict = 'Aborted';
-			}
-			else {
-				verdict = runResult.error;
+				verdict = Verdict.aborted;
 			}
 		}
 		else {
 			if(runResult.output === io.out.getFileContent()) {
-				verdict = 'Accepted';
+				verdict = Verdict.accepted;
 			}
 			else {
-				verdict = 'Wrong Answer';
+				verdict = Verdict.wrongAnswer;
 			}
 		}
 
 		return {
-			solution: solution.name,
-			verdict:  verdict
+			solutionName: solution.name,
+			verdict:      verdict,
+			testCaseName: io.in.name
 		};
 	};
 }
 
 
 export async function testSolutions(
-	solutions: any[],
-	ios: any[]
-): Promise<any> {
-	const runPromises: any[] = [];
+	solutions: Solution[],
+	ios:       IoInterface[]
+): Promise<AggregatedVerdict[]> {
+	const runPromises: (() => Promise<SolutionRun>)[] = [];
 
 	for (const solution of solutions) {
 		try {
@@ -74,10 +142,11 @@ export async function testSolutions(
 		} catch(e) {
 			runPromises.push(
 				() => {
-					return {
-						solution: solution.name,
-						error:    e
-					};
+					return Promise.resolve({
+						solutionName: solution.name,
+						verdict:      Verdict.compilationError,
+						testCaseName: ''
+					});
 				}
 			);
 			continue;
@@ -93,14 +162,9 @@ export async function testSolutions(
 		}
 	}
 
-	return new Promise((resolve, reject) => {
-		sequential(runPromises)
-			.then(runs => {
-				return resolve(aggregateResult(runs));
-			})
-			.catch(err => {
-				return reject(err);
-			});
+	return sequential(runPromises)
+	.then(runs => {
+		return aggregateResult(runs);
 	});
 }
 

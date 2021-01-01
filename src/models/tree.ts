@@ -7,11 +7,11 @@ import TestCase from "./test-case";
 import Validator from "./validator";
 
 
-interface IoInterface {
+export interface IoInterface {
 	number: number;
 	in?:    TestCase;
 	out?:   TestCase;
-};
+}
 
 interface IoFolderInterface {
 	folder: number;
