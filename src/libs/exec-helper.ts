@@ -1,15 +1,19 @@
 import { exec, spawn } from "child_process";
 import { createReadStream } from "fs";
 
+
 export function getCompileOutputPath(
-		codePath: string): string {
+	codePath: string
+): string {
 	return `${ codePath }.exe`;
 }
 
+
 export function compile(
-		codePath: string,
-		language: string,
-		verbose: boolean = false) {
+	codePath: string,
+	language: string,
+	verbose: boolean = false
+): Promise<any> {
 	return new Promise((resolve, reject) => {
 		const binPath = getCompileOutputPath(codePath);
 
@@ -46,10 +50,12 @@ export function compile(
 	});
 }
 
+
 export async function run(
-		binPath: string,
-		inputPath: string,
-		verbose: boolean = false) {
+	binPath: string,
+	inputPath: string,
+	verbose: boolean = false
+): Promise<any> {
 	return new Promise((resolve, reject) => {
 		if(verbose === true) {
 			console.log(

@@ -1,22 +1,25 @@
 import * as crypto from "crypto";
 
-import * as octokitAuthApp from "@octokit/auth-app";
+import { createAppAuth } from "@octokit/auth-app";
 import * as octokitRest from "@octokit/rest";
+
 
 const sigHeaderName: string = 'X-Hub-Signature';
 
+
 async function createJWT(
-		installationId: number,
-		repositoryId: number) {
+	installationId: number,
+	repositoryId: number
+): Promise<string> {
 	try {
-		const auth = octokitAuthApp.createAppAuth({
+		const auth: any = createAppAuth({
 			appId:          process.env.GITHUB_APP_IDENTIFIER,
 			privateKey:     process.env.PRIVATE_KEY.replace(/\\n/gm, '\n'),
 			clientId:       process.env.GITHUB_APP_CLIENT_ID,
 			clientSecret:   process.env.GITHUB_APP_CLIENT_SECRET
 		});
 
-		const authResult = await auth({
+		const authResult: any = await auth({
 			type:           'installation',
 			installationId: installationId,
 			repositoryIds:  [ repositoryId ]
@@ -29,35 +32,39 @@ async function createJWT(
 	}
 }
 
-export async function getClient(
-		installationId: number,
-		repositoryId: number) {
-	const jwt = await createJWT(installationId, repositoryId);
 
-	const octokit = new octokitRest.Octokit({
+export async function getClient(
+	installationId: number,
+	repositoryId: number
+): Promise<any> {
+	const jwt: string = await createJWT(installationId, repositoryId);
+
+	const octokit: any = new octokitRest.Octokit({
 		auth: jwt
 	});
 
 	return octokit;
 }
 
+
 export function validateWebhookMiddleware(
-		req,
-		res,
-		next) {
+	req,
+	res,
+	next
+): void {
 	console.log('validating request to github');
 
-	const payload = req.body;
+	const payload: any = req.body;
 	if(!payload) {
 		return next('Request body empty');
 	}
 
-	const sig = req.get(sigHeaderName) || '';
-	const hmac = crypto.createHmac('sha1', process.env.GITHUB_WEBHOOK_SECRET);
-	const digest = Buffer.from('sha1=' + hmac.update(JSON.stringify(payload)).digest('hex'), 'utf8');
-	const checksum = Buffer.from(sig, 'utf8');
+	const sig: string = req.get(sigHeaderName) || '';
+	const hmac: any = crypto.createHmac('sha1', process.env.GITHUB_WEBHOOK_SECRET);
+	const digest: Buffer = Buffer.from('sha1=' + hmac.update(JSON.stringify(payload)).digest('hex'), 'utf8');
+	const checksum: Buffer = Buffer.from(sig, 'utf8');
 	if(checksum.length !== digest.length || !crypto.timingSafeEqual(digest, checksum)) {
-		return next(`Request body digest (${digest}) did not match ${sigHeaderName} (${checksum})`);
+		return next(`Request body digest (${digest}) did not match ${sigHeaderName} (${checksum}).`);
 	}
 	return next();
 }

@@ -1,10 +1,10 @@
-import * as sequential from "promise-sequential";
+import sequential from "promise-sequential";
 
-import * as execHelper from "./exec-helper";
 
 function aggregateResult(
-		runs: any[]) {
-	const aggregatedResult = {};
+	runs: any[]
+): any {
+	const aggregatedResult: any = {};
 	for(var run of runs) {
 		if(aggregatedResult[ run.solution ] === undefined) {
 			aggregatedResult[ run.solution ] = {
@@ -21,14 +21,16 @@ function aggregateResult(
 	return aggregatedResult;
 }
 
+
 function testSolution(
-		solution: any,
-		io: any) {
+	solution: any,
+	io: any
+): any {
 	return async () => {
 		console.log(`Running solution ${ solution.name } on input ${ io.in.name }.`);
-		const runResult = await solution.run(io.in);
+		const runResult: any = await solution.run(io.in);
 
-		var verdict = 'Unknown';
+		var verdict: string = 'Unknown';
 		if(runResult.error) {
 			if(runResult.signal === 'SIGTERM') {
 				verdict = 'Time Limit Exceeded';
@@ -59,10 +61,12 @@ function testSolution(
 	};
 }
 
+
 export async function testSolutions(
-		solutions: any[],
-		ios: any[]) {
-	const runPromises = [];
+	solutions: any[],
+	ios: any[]
+): Promise<any> {
+	const runPromises: any[] = [];
 
 	for (const solution of solutions) {
 		try {
@@ -90,13 +94,13 @@ export async function testSolutions(
 	}
 
 	return new Promise((resolve, reject) => {
-		sequential.default(runPromises)
-		.then(runs => {
-			return resolve(aggregateResult(runs));
-		})
-		.catch(err => {
-			return reject(err);
-		});
+		sequential(runPromises)
+			.then(runs => {
+				return resolve(aggregateResult(runs));
+			})
+			.catch(err => {
+				return reject(err);
+			});
 	});
 }
 

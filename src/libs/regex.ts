@@ -1,4 +1,5 @@
 
+// sample: problems/some-problem/...
 const problemRegex = /^problems\/([\w-]+)\//i;
 
 // sample: problems/some-problem/solutions/cristhian-ac.cpp
@@ -7,23 +8,31 @@ const solutionRegex = /^problems\/([\w-]+)\/solutions\/([\w-]+\.\w+)$/i;
 // sample: problems/some-problem/io/2/3.in
 const ioRegex = /^problems\/([\w-]+)\/io\/(\d)\/(\d)\.(in|out)$/i;
 
+
 export function isSolutionFile(
-		str: string) {
+	str: string
+): boolean {
 	return solutionRegex.test(str);
 }
 
+
 export function isIoFile(
-		str: string) {
+	str: string
+): boolean {
 	return ioRegex.test(str);
 }
 
+
 export function getProblemName(
-		str: string) {
+	str: string
+): string {
 	return problemRegex.exec(str)[1];
 }
 
+
 export function getSolution(
-		str: string) {
+	str: string
+): any {
 	if(!isSolutionFile(str)) {
 		throw `Trying to get solution, but the path doesn't match a solution regex.`;
 	}
@@ -35,8 +44,10 @@ export function getSolution(
 	};
 }
 
+
 export function getIo(
-		str: string) {
+	str: string
+): any {
 	if(!isIoFile(str)) {
 		throw `Trying to get io, but the path doesn't match an io regex.`;
 	}
