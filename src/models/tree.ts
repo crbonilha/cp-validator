@@ -13,7 +13,7 @@ export default class Tree {
 	readonly sha: string;
 
 	private tree: any;
-	trimmedTree: any;
+	private trimmedTree: any;
 
 
 	constructor(
@@ -161,8 +161,17 @@ export default class Tree {
 	}
 
 
+	getProblemNames(): string[] {
+		if(this.trimmedTree === undefined) {
+			throw `Trying to get solutions before trimming the tree.`;
+		}
+
+		return this.trimmedTree.problems.map(problem => problem.name);
+	}
+
+
 	getSolutions(
-		problemName: string[]
+		problemName: string
 	): any[] {
 		if(this.trimmedTree === undefined) {
 			throw `Trying to get solutions before trimming the tree.`;
@@ -174,7 +183,7 @@ export default class Tree {
 
 
 	getAllIo(
-		problemName: string[]
+		problemName: string
 	): any[] {
 		if(this.trimmedTree === undefined) {
 			throw `Trying to get io before trimming the tree.`;

@@ -22,6 +22,7 @@ export default class Solution {
 		this.verbose  = verbose;
 	}
 
+
 	hasCodeBeenCompiled(): boolean {
 		return cache.fileAtPathExists(
 			execHelper.getCompileOutputPath(

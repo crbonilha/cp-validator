@@ -31,12 +31,12 @@ validateQueue.process(async (job) => {
 			);
 			await tree.init();
 
-			for (const problem of tree.trimmedTree.problems) {
-				commitMessage += `## Problem ${ problem.name }\n\n`;
+			for (const problemName of tree.getProblemNames()) {
+				commitMessage += `## Problem ${ problemName }\n\n`;
 
 				const runs: any = await cpValidator.testSolutions(
-					tree.getSolutions(problem.name),
-					tree.getAllIo(problem.name)
+					tree.getSolutions(problemName),
+					tree.getAllIo(problemName)
 				);
 
 				commitMessage += `### Solutions\n\n`;
