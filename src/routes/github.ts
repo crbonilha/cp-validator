@@ -2,7 +2,13 @@ import Bull from "bull";
 import express from "express";
 
 import * as auth from "../libs/auth";
-import { testSolutions, AggregatedVerdict, VerdictCount } from "../libs/cp-validator";
+import {
+	testSolutions,
+	validateInputs,
+	AggregatedVerdict,
+	AggregatedValidatorVerdict,
+	VerdictCount
+} from "../libs/cp-validator";
 
 import Tree from "../models/tree";
 
@@ -47,7 +53,7 @@ validateQueue.process(async (job) => {
 			);
 			await tree.init();
 
-			for (const problemName of tree.getProblemNames()) {
+			for(const problemName of tree.getProblemNames()) {
 				commitMessage += `## Problem ${ problemName }\n\n`;
 
 				const aggregatedVerdicts: AggregatedVerdict[] = await testSolutions(
@@ -56,7 +62,7 @@ validateQueue.process(async (job) => {
 				);
 
 				commitMessage += `### Solutions\n\n`;
-				for (const av of aggregatedVerdicts) {
+				for(const av of aggregatedVerdicts) {
 					commitMessage += `**- ${ av.solutionName }: `;
 
 					const verdict = [];
@@ -93,6 +99,29 @@ validateQueue.process(async (job) => {
 						av.compilationError, 'CE', av.total);
 					commitMessage += maybeAddVerdictToMessage(
 						av.aborted, 'OTHER', av.total);
+
+					commitMessage += `\n`;
+				}
+
+
+				const aggregatedValidatorVerdicts: AggregatedValidatorVerdict[] =
+					await validateInputs(
+						tree.getValidators(problemName),
+						tree.getAllIo(problemName)
+					);
+
+				commitMessage += `### Validators\n\n`;
+				for(const avv of aggregatedValidatorVerdicts) {
+					commitMessage += `**- ${ avv.validatorName }: `;
+
+					if(avv.passed === avv.total) {
+						commitMessage += `Passed (${ avv.passed })\n`;
+					}
+					else {
+						commitMessage += `Not passed ${ avv.passed } / ${ avv.total }\n`;
+						commitMessage +=
+							`-- [ ${ avv.failedTestCaseNames.join(', ') } ]\n`;
+					}
 
 					commitMessage += `\n`;
 				}
@@ -164,8 +193,8 @@ async function test2() {
 			repositoryId:   287727371,
 			owner:          'crbonilha',
 			name:           'sample-contest',
-			commit:         '04542a3cd962a399bcab071a93307a9cefe30e6e',
-			tree:           'e12d8b2406ecf1bf40cda25ed5571b0c6ff16d12'
+			commit:         'ccbda63204bf71d866273ffaab075723f083fa8f',
+			tree:           '171beceef6d236c8a2da665ccfb375aa17360faf'
 		});
 	} catch(e) {
 		console.log(e);

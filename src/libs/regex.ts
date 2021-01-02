@@ -9,7 +9,7 @@ const solutionRegex: RegExp = /^problems\/([\w-]+)\/solutions\/([\w-]+\.\w+)$/i;
 const ioRegex: RegExp = /^problems\/([\w-]+)\/io\/(\d)\/(\d)\.(in|out)$/i;
 
 // sample: problems/some-problem/validators/positive-number.cpp
-const validatorRegex: RegExp = /^problems\/([\w-]+)\/validators\/(\w-]+\.\w+)$/i;
+const validatorRegex: RegExp = /^problems\/([\w-]+)\/validators\/([\w-]+\.\w+)$/i;
 
 
 export function isSolutionFile(

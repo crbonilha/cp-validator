@@ -97,7 +97,8 @@ export default class Tree {
 			}
 
 			if(!regex.isSolutionFile(treeItem.path) &&
-				!regex.isIoFile(treeItem.path)) {
+				!regex.isIoFile(treeItem.path) &&
+				!regex.isValidatorFile(treeItem.path)) {
 				continue;
 			}
 
@@ -152,7 +153,7 @@ export default class Tree {
 				problemTree.validators.push(
 					new Validator(
 						treeItem.sha,
-						util.getFileNameFromPath(treeItem.sha)
+						util.getFileNameFromPath(treeItem.path)
 					)
 				);
 			}

@@ -2,6 +2,8 @@ import sequential from "promise-sequential";
 
 import { IoInterface } from "../models/tree";
 import Solution from "../models/solution";
+import TestCase from "../models/test-case";
+import Validator from "../models/validator";
 
 
 enum Verdict {
@@ -20,6 +22,12 @@ interface SolutionRun {
 	testCaseName: string;
 }
 
+interface ValidatorRun {
+	validatorName: string;
+	testCaseName:  string;
+	passed:        boolean;
+}
+
 export interface VerdictCount {
 	count:         number;
 	testCaseNames: string[];
@@ -34,6 +42,13 @@ export interface AggregatedVerdict {
 	segmentationFault?: VerdictCount;
 	compilationError?:  VerdictCount;
 	aborted?:           VerdictCount;
+}
+
+export interface AggregatedValidatorVerdict {
+	validatorName:       string;
+	total:               number;
+	passed:              number;
+	failedTestCaseNames: string[];
 }
 
 
@@ -134,13 +149,35 @@ function testSolution(
 }
 
 
+function validateInput(
+	validator: Validator,
+	input:     TestCase
+): () => Promise<ValidatorRun> {
+	return async () => {
+		console.log(`Running validator ${ validator.name } on input ${ input.name }.`);
+		const runResult: any = await validator.run(input);
+
+		let passed: boolean = true;
+		if(runResult.error && runResult.error.indexOf('Code:') !== -1) {
+			passed = false;
+		}
+
+		return {
+			validatorName: validator.name,
+			testCaseName:  input.name,
+			passed:        passed
+		};
+	};
+}
+
+
 export async function testSolutions(
 	solutions: Solution[],
 	ios:       IoInterface[]
 ): Promise<AggregatedVerdict[]> {
 	const runPromises: (() => Promise<SolutionRun>)[] = [];
 
-	for (const solution of solutions) {
+	for(const solution of solutions) {
 		try {
 			await solution.compile();
 		} catch(e) {
@@ -156,7 +193,7 @@ export async function testSolutions(
 			continue;
 		}
 
-		for (const io of ios) {
+		for(const io of ios) {
 			runPromises.push(
 				testSolution(
 					solution,
@@ -169,6 +206,65 @@ export async function testSolutions(
 	return sequential(runPromises)
 	.then(runs => {
 		return aggregateResult(runs);
+	});
+}
+
+
+export async function validateInputs(
+	validators: Validator[],
+	ios:        IoInterface[]
+): Promise<AggregatedValidatorVerdict[]> {
+	const runPromises: (() => Promise<ValidatorRun>)[] = [];
+
+	for(const validator of validators) {
+		try {
+			await validator.compile();
+		} catch(e) {
+			runPromises.push(
+				() => {
+					return Promise.resolve({
+						validatorName: validator.name,
+						testCaseName:  '',
+						passed:        false
+					});
+				}
+			);
+			continue;
+		}
+
+		for(const io of ios) {
+			runPromises.push(
+				validateInput(
+					validator,
+					io.in
+				)
+			);
+		}
+	}
+
+	return sequential(runPromises)
+	.then((validatorRuns: ValidatorRun[]) => {
+		const avvList: AggregatedValidatorVerdict[] = [];
+		for(const vr of validatorRuns) {
+			if(!avvList.some(avv => avv.validatorName === vr.validatorName)) {
+				avvList.push({
+					validatorName:       vr.validatorName,
+					total:               0,
+					passed:              0,
+					failedTestCaseNames: []
+				});
+			}
+			const avv = avvList.find(avv => avv.validatorName === vr.validatorName);
+
+			avv.total++;
+			if(vr.passed) {
+				avv.passed++;
+			}
+			else {
+				avv.failedTestCaseNames.push(vr.testCaseName);
+			}
+		}
+		return avvList;
 	});
 }
 
