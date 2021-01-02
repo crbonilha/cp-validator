@@ -5,13 +5,13 @@ import Solution from "../models/solution";
 
 
 enum Verdict {
-	accepted,
-		wrongAnswer,
-		timeLimitExceeded,
-		segmentationFault,
-		compilationError,
-		aborted,
-		other,
+	accepted = 'accepted',
+		wrongAnswer = 'wrongAnswer',
+		timeLimitExceeded = 'timeLimitExceeded',
+		segmentationFault = 'segmentationFault',
+		compilationError = 'compilationError',
+		aborted = 'aborted',
+		other = 'other',
 }
 
 interface SolutionRun {

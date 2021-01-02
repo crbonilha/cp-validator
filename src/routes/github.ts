@@ -19,10 +19,14 @@ function maybeAddVerdictToMessage(
 	verdictShortName: string,
 	total:            number
 ): string {
+	let verdictMessage = '';
 	if(verdict && verdict.count > 0) {
-		return `${ verdictShortName }: ${ verdict.count } / ${ total }\n`;
+		verdictMessage += `${ verdictShortName }: ${ verdict.count } / ${ total }\n`;
+		if(verdict.testCaseNames.length > 0) {
+			verdictMessage += `-- [ ${ verdict.testCaseNames.join(', ') } ]\n`;
+		}
 	}
-	return '';
+	return verdictMessage;
 }
 
 
@@ -78,7 +82,7 @@ validateQueue.process(async (job) => {
 					}
 					commitMessage += `${ verdict.join(',') }**\n`;
 
-					commitMessage += `AC: ${ av.accepted.count } / ${ av.total }`;
+					commitMessage += `AC: ${ av.accepted.count } / ${ av.total }\n`;
 					commitMessage += maybeAddVerdictToMessage(
 						av.wrongAnswer, 'WA', av.total);
 					commitMessage += maybeAddVerdictToMessage(
