@@ -3,24 +3,14 @@ import * as fs from "fs";
 import { decodeResponse } from "./util";
 
 
-const tempDir: string = './temp';
+export const tempDir: string = './temp';
 
 
 export function getFilePath(
-	sha: string,
+	sha:      string,
 	fileName: string
 ): string {
 	return `${ tempDir }/${ sha }-${ fileName }`;
-}
-
-
-export function fileExists(
-	sha: string,
-	fileName: string
-): boolean {
-	return fs.existsSync(
-		getFilePath(sha, fileName)
-	);
 }
 
 
@@ -31,10 +21,20 @@ export function fileAtPathExists(
 }
 
 
-export function saveFile(
-	sha: string,
+export function fileExists(
+	sha:      string,
+	fileName: string
+): boolean {
+	return fileAtPathExists(
+		getFilePath(sha, fileName)
+	);
+}
+
+
+function saveFile(
+	sha:      string,
 	fileName: string,
-	content: string
+	content:  string
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
 		if(!fs.existsSync(tempDir)) {
@@ -61,8 +61,8 @@ export function saveFile(
 
 
 export async function checkAndMaybeDownload(
-	sha: string,
-	fileName: string,
+	sha:              string,
+	fileName:         string,
 	downloadCallback: () => any
 ): Promise<void> {
 	if(fileExists(sha, fileName)) {
@@ -76,7 +76,7 @@ export async function checkAndMaybeDownload(
 
 
 export function getFileContent(
-	sha: string,
+	sha:      string,
 	fileName: string
 ): string {
 	return fs.readFileSync(
