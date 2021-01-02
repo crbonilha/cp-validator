@@ -1,3 +1,5 @@
+import assert from "assert";
+
 
 // sample: problems/some-problem/...
 const problemRegex: RegExp = /^problems\/([\w-]+)\//i;
@@ -6,83 +8,96 @@ const problemRegex: RegExp = /^problems\/([\w-]+)\//i;
 const solutionRegex: RegExp = /^problems\/([\w-]+)\/solutions\/([\w-]+\.\w+)$/i;
 
 // sample: problems/some-problem/io/2/3.in
-const ioRegex: RegExp = /^problems\/([\w-]+)\/io\/(\d)\/(\d)\.(in|out)$/i;
+const ioRegex: RegExp = /^problems\/([\w-]+)\/io\/(\d+)\/(\d+)\.(in|out)$/i;
 
 // sample: problems/some-problem/validators/positive-number.cpp
 const validatorRegex: RegExp = /^problems\/([\w-]+)\/validators\/([\w-]+\.\w+)$/i;
 
 
-export function isSolutionFile(
-	str: string
-): boolean {
-	return solutionRegex.test(str);
+export interface IoRegexResult {
+	folder: number;
+	number: number;
+	type:   string;
 }
 
 
-export function isIoFile(
-	str: string
+export function isProblemFolder(
+	path: string
 ): boolean {
-	return ioRegex.test(str);
+	return problemRegex.test(path);
+}
+
+
+export function isSolutionFile(
+	path: string
+): boolean {
+	return solutionRegex.test(path);
 }
 
 
 export function isValidatorFile(
-	str: string
+	path: string
 ): boolean {
-	return validatorRegex.test(str);
+	return validatorRegex.test(path);
+}
+
+
+export function isIoFile(
+	path: string
+): boolean {
+	return ioRegex.test(path);
 }
 
 
 export function getProblemName(
-	str: string
+	path: string
 ): string {
-	return problemRegex.exec(str)[1];
+	assert(
+		isProblemFolder(path),
+		'The specified path doesn\'t correspond to a problem folder.'
+	);
+
+	return problemRegex.exec(path)[1];
 }
 
 
-export function getSolution(
-	str: string
-): any {
-	if(!isSolutionFile(str)) {
-		throw `Trying to get solution, but the path doesn't match a solution regex.`;
-	}
+export function getSolutionName(
+	path: string
+): string {
+	assert(
+		isSolutionFile(path),
+		'The specified path doesn\'t correspond to a solution file.'
+	);
 
-	const regexResponse = solutionRegex.exec(str);
-	return {
-		problem:  regexResponse[1],
-		solution: regexResponse[2]
-	};
+	return solutionRegex.exec(path)[2];
+}
+
+
+export function getValidatorName(
+	path: string
+): string {
+	assert(
+		isValidatorFile(path),
+		'The specified path doesn\'t correspond to a validator file.'
+	);
+
+	return validatorRegex.exec(path)[2];
 }
 
 
 export function getIo(
-	str: string
-): any {
-	if(!isIoFile(str)) {
-		throw `Trying to get io, but the path doesn't match an io regex.`;
-	}
+	path: string
+): IoRegexResult {
+	assert(
+		isIoFile(path),
+		'The specified path doesn\'t correspond to an io file.'
+	);
 
-	const regexResponse = ioRegex.exec(str);
+	const regexResponse = ioRegex.exec(path);
 	return {
-		problem: regexResponse[1],
-		folder:  regexResponse[2],
-		number:  regexResponse[3],
-		type:    regexResponse[4]
-	};
-}
-
-
-export function getValidator(
-	str: string
-): any {
-	if(!isValidatorFile(str)) {
-		throw `Trying to get validator, but the path doesn't match a validator regex.`;
-	}
-
-	const regexResponse = validatorRegex.exec(str);
-	return {
-		problem:   regexResponse[1],
-		validator: regexResponse[2]
+		folder: Number(regexResponse[2]),
+		number: Number(regexResponse[3]),
+		type:   regexResponse[4]
 	};
 }
 

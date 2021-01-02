@@ -91,7 +91,7 @@ export default class Tree {
 			problems: []
 		};
 
-		for (const treeItem of this.tree) {
+		for(const treeItem of this.tree) {
 			if(treeItem.type !== 'blob') {
 				continue;
 			}
@@ -114,8 +114,6 @@ export default class Tree {
 			const problemTree = this.trimmedTree.problems.find(p => p.name === problemName);
 
 			if(regex.isSolutionFile(treeItem.path)) {
-				const regexResult = regex.getSolution(treeItem.path);
-
 				problemTree.solutions.push(
 					new Solution(
 						treeItem.sha,
@@ -124,32 +122,31 @@ export default class Tree {
 				);
 			}
 			else if(regex.isIoFile(treeItem.path)) {
-				const regexResult = regex.getIo(treeItem.path);
+				const ioRegexResult: regex.IoRegexResult = regex.getIo(treeItem.path);
 
-				if(!problemTree.ioFolders.some(io => io.folder === regexResult.folder)) {
+				if(!problemTree.ioFolders.some(io => io.folder === ioRegexResult.folder)) {
 					problemTree.ioFolders.push({
-						folder: regexResult.folder,
+						folder: ioRegexResult.folder,
 						ios:    []
 					});
 				}
-				const ioFolder = problemTree.ioFolders.find(io => io.folder === regexResult.folder);
+				const ioFolder =
+					problemTree.ioFolders.find(io => io.folder === ioRegexResult.folder);
 
-				if(!ioFolder.ios.some(io => io.number === regexResult.number)) {
+				if(!ioFolder.ios.some(io => io.number === ioRegexResult.number)) {
 					ioFolder.ios.push({
-						number: regexResult.number
+						number: ioRegexResult.number
 					});
 				}
-				const ioObj = ioFolder.ios.find(io => io.number === regexResult.number);
+				const ioObj = ioFolder.ios.find(io => io.number === ioRegexResult.number);
 
-				ioObj[ regexResult.type ] = new TestCase(
+				ioObj[ ioRegexResult.type ] = new TestCase(
 					treeItem.sha,
-					`${ ioFolder.folder }-${ ioObj.number }-${ regexResult.type }`,
-					regexResult.type
+					`${ ioFolder.folder }-${ ioObj.number }-${ ioRegexResult.type }`,
+					ioRegexResult.type
 				);
 			}
 			else if(regex.isValidatorFile(treeItem.path)) {
-				const regexResult = regex.getValidator(treeItem.path);
-
 				problemTree.validators.push(
 					new Validator(
 						treeItem.sha,
