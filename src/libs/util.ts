@@ -5,13 +5,6 @@ import * as fs from "fs";
 const tempDir: string = './temp';
 
 
-export function getRandomName(
-	length: number = 10
-): string {
-	return randomBytes(length).toString('hex');
-}
-
-
 export function getLanguage(
 	fileName: string
 ): string {
@@ -36,42 +29,6 @@ export function getFileNameFromPath(
 	else {
 		return path.substr(path.lastIndexOf('/')+1);
 	}
-}
-
-
-export function writeFile(
-	content: string,
-	nameSuffix: string = '',
-	verbose: boolean = false
-): Promise<any> {
-	return new Promise((resolve, reject) => {
-		if(!fs.existsSync(tempDir)) {
-			fs.mkdirSync(tempDir);
-		}
-
-		const fileName = getRandomName() + nameSuffix;
-		const filePath = `${ tempDir }/${ fileName }`;
-
-		if(verbose === true) {
-			console.log(
-				`Writing file ${ fileName } into ${ filePath }.`
-			);
-		}
-
-		fs.writeFile(
-			filePath,
-			content,
-			{
-				encoding: 'utf8'
-			},
-			err => {
-				if(err) {
-					return reject(err);
-				}
-				resolve(filePath);
-			}
-		);
-	});
 }
 
 
