@@ -2,7 +2,7 @@ import Bull from "bull";
 import express from "express";
 
 import * as auth from "../libs/auth";
-import * as cpValidator from "../libs/cp-validator";
+import { testSolutions, AggregatedVerdict, VerdictCount } from "../libs/cp-validator";
 
 import Tree from "../models/tree";
 
@@ -14,6 +14,18 @@ validateQueue.on('error', err => {
 });
 
 
+function maybeAddVerdictToMessage(
+	verdict:          VerdictCount,
+	verdictShortName: string,
+	total:            number
+): string {
+	if(verdict && verdict.count > 0) {
+		return `${ verdictShortName }: ${ verdict.count } / ${ total }\n`;
+	}
+	return '';
+}
+
+
 validateQueue.process(async (job) => {
 	return new Promise(async (resolve, reject) => {
 		const octokit: any = await auth.getClient(
@@ -21,7 +33,7 @@ validateQueue.process(async (job) => {
 			job.data.repositoryId
 		);
 
-		var commitMessage: string = '# CP Validator results\n\n';
+		let commitMessage: string = '# CP Validator results\n\n';
 		try {
 			const tree: Tree = new Tree(
 				octokit,
@@ -34,17 +46,50 @@ validateQueue.process(async (job) => {
 			for (const problemName of tree.getProblemNames()) {
 				commitMessage += `## Problem ${ problemName }\n\n`;
 
-				const runs: any = await cpValidator.testSolutions(
+				const aggregatedVerdicts: AggregatedVerdict[] = await testSolutions(
 					tree.getSolutions(problemName),
 					tree.getAllIo(problemName)
 				);
 
 				commitMessage += `### Solutions\n\n`;
-				for (const solution in runs) {
-					commitMessage += `**- ${ solution }**:\n`;
-					for (var verdict in runs[solution]) {
-						commitMessage += `${ verdict }: ${ runs[solution][verdict] }\n`;
+				for (const av of aggregatedVerdicts) {
+					commitMessage += `**- ${ av.solutionName }: `;
+
+					const verdict = [];
+					if(av.accepted.count == av.total) {
+						verdict.push('AC');
 					}
+					else {
+						if(av.wrongAnswer) {
+							verdict.push('WA');
+						}
+						if(av.timeLimitExceeded) {
+							verdict.push('TLE');
+						}
+						if(av.segmentationFault) {
+							verdict.push('SF');
+						}
+						if(av.compilationError) {
+							verdict.push('CE');
+						}
+						if(av.aborted) {
+							verdict.push('OTHER');
+						}
+					}
+					commitMessage += `${ verdict.join(',') }**\n`;
+
+					commitMessage += `AC: ${ av.accepted.count } / ${ av.total }`;
+					commitMessage += maybeAddVerdictToMessage(
+						av.wrongAnswer, 'WA', av.total);
+					commitMessage += maybeAddVerdictToMessage(
+						av.timeLimitExceeded, 'TLE', av.total);
+					commitMessage += maybeAddVerdictToMessage(
+						av.segmentationFault, 'SF', av.total);
+					commitMessage += maybeAddVerdictToMessage(
+						av.compilationError, 'CE', av.total);
+					commitMessage += maybeAddVerdictToMessage(
+						av.aborted, 'OTHER', av.total);
+
 					commitMessage += `\n`;
 				}
 			}

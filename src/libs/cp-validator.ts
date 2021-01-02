@@ -20,15 +20,15 @@ interface SolutionRun {
 	testCaseName: string;
 }
 
-interface VerdictCount {
+export interface VerdictCount {
 	count:         number;
 	testCaseNames: string[];
 }
 
-interface AggregatedVerdict {
+export interface AggregatedVerdict {
 	solutionName:       string;
 	total:              number;
-	accepted?:          VerdictCount;
+	accepted:           VerdictCount;
 	wrongAnswer?:       VerdictCount;
 	timeLimitExceeded?: VerdictCount;
 	segmentationFault?: VerdictCount;
@@ -67,7 +67,11 @@ function aggregateResult(
 		if(!aggregatedVerdicts.some(av => av.solutionName === run.solutionName)) {
 			aggregatedVerdicts.push({
 				solutionName: run.solutionName,
-				total:        0
+				total:        0,
+				accepted: {
+					count:         0,
+					testCaseNames: []
+				}
 			});
 		}
 		const aggregatedVerdict: AggregatedVerdict =
