@@ -41,7 +41,9 @@ describe('cache', () => {
 	describe('fileExists', () => {
 		it('should not find a file that doesn\'t exist', () => {
 			const stub = sinon.stub(Cache, 'getFilePath');
-			stub.withArgs('non', 'existent').returns(`${ testTempDir }/non-existent`);
+			stub
+				.withArgs('non', 'existent')
+				.returns(`${ testTempDir }/non-existent`);
 
 			assert.equal(
 				Cache.fileExists('non', 'existent'),
@@ -52,7 +54,9 @@ describe('cache', () => {
 		});
 		it('should find a file that exists', () => {
 			const stub = sinon.stub(Cache, 'getFilePath');
-			stub.returns(`${ testTempDir }/pro-existent`);
+			stub
+				.withArgs('a', 'b')
+				.returns(`${ testTempDir }/pro-existent`);
 
 			createFileIfDoesntExist(
 				testTempDir,
@@ -62,6 +66,63 @@ describe('cache', () => {
 
 			assert(
 				Cache.fileExists('a', 'b')
+			);
+
+			stub.restore();
+		});
+	});
+
+	describe('checkAndMaybeDownload', () => {
+		it('should download a file that doesn\'t exist', async () => {
+			const stub = sinon.stub(Cache, 'getFilePath');
+			stub
+				.withArgs('a', 'b')
+				.returns(`${ testTempDir }/deletable-file`);
+
+			deleteFileIfExists(
+				testTempDir,
+				'deletable-file'
+			);
+
+			await Cache.checkAndMaybeDownload(
+				'a',
+				'b',
+				downloadCallback
+			);
+
+			assert(
+				fs.readFileSync(
+					`${ testTempDir }/deletable-file`,
+					{ encoding: 'utf8' }
+				),
+				'testing'
+			);
+
+			stub.restore();
+		});
+		it('should not download a file that exists', async () => {
+			const stub = sinon.stub(Cache, 'getFilePath');
+			stub
+				.withArgs('a', 'b')
+				.returns(`${ testTempDir }/existent-file`);
+
+			const callbackSpy = sinon.spy();
+
+			createFileIfDoesntExist(
+				testTempDir,
+				'existent-file',
+				'content'
+			);
+
+			await Cache.checkAndMaybeDownload(
+				'a',
+				'b',
+				callbackSpy
+			);
+
+			assert.equal(
+				callbackSpy.called,
+				false
 			);
 
 			stub.restore();
@@ -90,5 +151,24 @@ function createFileIfDoesntExist(
 			}
 		);
 	}
+}
+
+function deleteFileIfExists(
+	dir:      string,
+	fileName: string
+): void {
+	const filePath: string = `${ dir }/${ fileName }`;
+
+	if(fs.existsSync(filePath)) {
+		fs.unlinkSync(filePath);
+	}
+}
+
+function downloadCallback(): Promise<any> {
+	return Promise.resolve({
+		data: {
+			content: 'dGVzdGluZw=='
+		}
+	});
 }
 
