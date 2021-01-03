@@ -128,6 +128,28 @@ describe('cache', () => {
 			stub.restore();
 		});
 	});
+
+	describe('getFileContent', () => {
+		it('should return the file content', () => {
+			const stub = sinon.stub(Cache, 'getFilePath');
+			stub
+				.withArgs('a', 'b')
+				.returns(`${ testTempDir }/existent-file`);
+
+			createFileIfDoesntExist(
+				testTempDir,
+				'existent-file',
+				'content'
+			);
+
+			assert.equal(
+				Cache.getFileContent('a', 'b'),
+				'content'
+			);
+
+			stub.restore();
+		});
+	});
 });
 
 
