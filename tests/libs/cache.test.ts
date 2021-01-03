@@ -1,7 +1,9 @@
 import assert from "assert";
 import fs from "fs";
+import sinon from "sinon";
 
-import * as cache from "../../src/libs/cache";
+import Cache from "../../src/libs/cache";
+
 
 const testTempDir: string = './temp/test';
 
@@ -10,8 +12,8 @@ describe('cache', () => {
 	describe('getFilePath', () => {
 		it('should return the correct file path', () => {
 			assert.equal(
-				cache.getFilePath('a', 'b'),
-				`${ cache.tempDir }/a-b`
+				Cache.getFilePath('a', 'b'),
+				`${ Cache.tempDir }/a-b`
 			);
 		});
 	});
@@ -19,7 +21,7 @@ describe('cache', () => {
 	describe('fileAtPathExists', () => {
 		it('should not find a file that doesn\'t exist', () => {
 			assert.equal(
-				cache.fileAtPathExists(`${ testTempDir }/notExistentFile.txt`),
+				Cache.fileAtPathExists(`${ testTempDir }/notExistentFile.txt`),
 				false
 			);
 		});
@@ -29,32 +31,42 @@ describe('cache', () => {
 				'existentFile.txt',
 				'testContent'
 			);
+
 			assert(
-				cache.fileAtPathExists(`${ testTempDir }/existentFile.txt`)
+				Cache.fileAtPathExists(`${ testTempDir }/existentFile.txt`)
 			);
 		});
 	});
 
-	/*
 	describe('fileExists', () => {
 		it('should not find a file that doesn\'t exist', () => {
+			const stub = sinon.stub(Cache, 'getFilePath');
+			stub.withArgs('non', 'existent').returns(`${ testTempDir }/non-existent`);
+
 			assert.equal(
-				cache.fileExists(`${ testTempDir }/notExistentFile.txt`),
+				Cache.fileExists('non', 'existent'),
 				false
 			);
+
+			stub.restore();
 		});
 		it('should find a file that exists', () => {
+			const stub = sinon.stub(Cache, 'getFilePath');
+			stub.returns(`${ testTempDir }/pro-existent`);
+
 			createFileIfDoesntExist(
 				testTempDir,
-				'existentFile.txt',
+				'pro-existent',
 				'testContent'
 			);
+
 			assert(
-				cache.fileAtPathExists(`${ testTempDir }/existentFile.txt`)
+				Cache.fileExists('a', 'b')
 			);
+
+			stub.restore();
 		});
 	});
-	*/
 });
 
 

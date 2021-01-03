@@ -1,6 +1,6 @@
-import * as cache from "../libs/cache";
 import * as execHelper from "../libs/exec-helper";
 import * as util from "../libs/util";
+import Cache from "../libs/cache";
 import TestCase from "./test-case";
 
 
@@ -24,22 +24,22 @@ export default class Validator {
 
 
 	hasCodeBeenCompiled(): boolean {
-		return cache.fileAtPathExists(
+		return Cache.fileAtPathExists(
 			execHelper.getCompileOutputPath(
-				cache.getFilePath(this.sha, this.name)
+				Cache.getFilePath(this.sha, this.name)
 			)
 		);
 	}
 
 
 	async compile(): Promise<void> {
-		if(!cache.fileExists(this.sha, this.name)) {
+		if(!Cache.fileExists(this.sha, this.name)) {
 			throw `Trying to compile validator before downloading it.`;
 		}
 
 		if(!this.hasCodeBeenCompiled()) {
 			const compileResponse = await execHelper.compile(
-				cache.getFilePath(this.sha, this.name),
+				Cache.getFilePath(this.sha, this.name),
 				this.language,
 				this.verbose
 			);
@@ -56,9 +56,9 @@ export default class Validator {
 
 		const runResponse: any = await execHelper.run(
 			execHelper.getCompileOutputPath(
-				cache.getFilePath(this.sha, this.name)
+				Cache.getFilePath(this.sha, this.name)
 			),
-			cache.getFilePath(testCase.sha, testCase.name),
+			Cache.getFilePath(testCase.sha, testCase.name),
 			this.verbose
 		);
 

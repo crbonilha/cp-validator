@@ -1,4 +1,4 @@
-import { getFileContent } from "../libs/cache";
+import Cache from "../libs/cache";
 
 
 export default class TestCase {
@@ -22,7 +22,7 @@ export default class TestCase {
 
 
 	getFileContent(): string {
-		return getFileContent(this.sha, this.name);
+		return Cache.getFileContent(this.sha, this.name);
 	}
 }
 

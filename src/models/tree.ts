@@ -1,7 +1,7 @@
-import * as cache from "../libs/cache";
 import * as regex from "../libs/regex";
 import * as util from "../libs/util";
 
+import Cache from "../libs/cache";
 import Solution from "./solution";
 import TestCase from "./test-case";
 import Validator from "./validator";
@@ -165,7 +165,7 @@ export default class Tree {
 
 		for (const problem of this.trimmedTree.problems) {
 			for (const solution of problem.solutions) {
-				await cache.checkAndMaybeDownload(
+				await Cache.checkAndMaybeDownload(
 					solution.sha,
 					solution.name,
 					this.getBlob.bind(this, solution.sha)
@@ -175,14 +175,14 @@ export default class Tree {
 			for (const ioFolder of problem.ioFolders) {
 				for (const io of ioFolder.ios) {
 					if(io.in !== undefined) {
-						await cache.checkAndMaybeDownload(
+						await Cache.checkAndMaybeDownload(
 							io.in.sha,
 							io.in.name,
 							this.getBlob.bind(this, io.in.sha)
 						);
 					}
 					if(io.out !== undefined) {
-						await cache.checkAndMaybeDownload(
+						await Cache.checkAndMaybeDownload(
 							io.out.sha,
 							io.out.name,
 							this.getBlob.bind(this, io.out.sha)
@@ -192,7 +192,7 @@ export default class Tree {
 			}
 
 			for (const validator of problem.validators) {
-				await cache.checkAndMaybeDownload(
+				await Cache.checkAndMaybeDownload(
 					validator.sha,
 					validator.name,
 					this.getBlob.bind(this, validator.sha)
