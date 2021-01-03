@@ -1,6 +1,17 @@
 import { exec, spawn } from "child_process";
 import { createReadStream } from "fs";
 
+import Cache from "./cache";
+
+
+export interface RunResult {
+	output: string;
+	killed: boolean;
+	code:   string;
+	signal: string;
+	error:  Error;
+}
+
 
 export function getCompileOutputPath(
 	codePath: string
@@ -12,10 +23,13 @@ export function getCompileOutputPath(
 export function compile(
 	codePath: string,
 	language: string,
-	verbose: boolean = false
-): Promise<any> {
+	verbose:  boolean = false
+): Promise<string> {
 	return new Promise((resolve, reject) => {
-		const binPath = getCompileOutputPath(codePath);
+		if(!Cache.fileAtPathExists(codePath)) {
+			return reject(`File at ${ codePath } doesn\'t exist.`);
+		}
+		const binPath: string = getCompileOutputPath(codePath);
 
 		var compileCmd = '';
 		if(language === 'cpp') {
@@ -42,9 +56,7 @@ export function compile(
 					console.log(err);
 					return reject(err);
 				}
-				resolve({
-					binPath: `${ binPath }`
-				});
+				resolve(`${ binPath }`);
 			}
 		);
 	});
@@ -52,15 +64,22 @@ export function compile(
 
 
 export async function run(
-	binPath: string,
+	binPath:   string,
 	inputPath: string,
-	verbose: boolean = false
-): Promise<any> {
+	verbose:   boolean = false
+): Promise<RunResult> {
 	return new Promise((resolve, reject) => {
 		if(verbose === true) {
 			console.log(
 				`Running ${ binPath } with input ${ inputPath }.`
 			);
+		}
+
+		if(!Cache.fileAtPathExists(binPath)) {
+			return reject(`File at ${ binPath } doesn\'t exist.`);
+		}
+		if(!Cache.fileAtPathExists(inputPath)) {
+			return reject(`File at ${ inputPath } doesn\'t exist.`);
 		}
 
 		try {
@@ -87,7 +106,9 @@ export async function run(
 					return resolve({
 						output: '',
 						killed: false,
-						error:  `Code: ${ code }.`
+						code:   null,
+						signal: null,
+						error:  new Error(`Code: ${ code }.`)
 					});
 				}
 
@@ -96,15 +117,18 @@ export async function run(
 					return resolve({
 						output: '',
 						killed: true,
-						error:  `Signal: ${ signal }.`,
-						signal: signal
+						code:   null,
+						signal: signal,
+						error:  new Error(`Signal: ${ signal }.`)
 					});
 				}
 
 				return resolve({
 					output: stdout,
 					killed: false,
-					error:  ''
+					code:   null,
+					signal: null,
+					error:  null
 				});
 			});
 
@@ -114,6 +138,8 @@ export async function run(
 				return resolve({
 					output: '',
 					killed: true,
+					code:   null,
+					signal: null,
 					error:  err
 				});
 			});
@@ -129,6 +155,8 @@ export async function run(
 			resolve({
 				output: '',
 				killed: true,
+				code:   null,
+				signal: null,
 				error:  e
 			});
 		}

@@ -38,7 +38,7 @@ export default class Validator {
 		}
 
 		if(!this.hasCodeBeenCompiled()) {
-			const compileResponse = await execHelper.compile(
+			await execHelper.compile(
 				Cache.getFilePath(this.sha, this.name),
 				this.language,
 				this.verbose

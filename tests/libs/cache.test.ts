@@ -3,9 +3,7 @@ import fs from "fs";
 import sinon from "sinon";
 
 import Cache from "../../src/libs/cache";
-
-
-const testTempDir: string = './temp/test';
+import TestHelper from "../test-helper";
 
 
 describe('cache', () => {
@@ -21,19 +19,19 @@ describe('cache', () => {
 	describe('fileAtPathExists', () => {
 		it('should not find a file that doesn\'t exist', () => {
 			assert.equal(
-				Cache.fileAtPathExists(`${ testTempDir }/notExistentFile.txt`),
+				Cache.fileAtPathExists(`${ TestHelper.testTempDir }/notExistentFile.txt`),
 				false
 			);
 		});
 		it('should find a file that exists', () => {
-			createFileIfDoesntExist(
-				testTempDir,
+			TestHelper.createFileIfDoesntExist(
+				TestHelper.testTempDir,
 				'existentFile.txt',
 				'testContent'
 			);
 
 			assert(
-				Cache.fileAtPathExists(`${ testTempDir }/existentFile.txt`)
+				Cache.fileAtPathExists(`${ TestHelper.testTempDir }/existentFile.txt`)
 			);
 		});
 	});
@@ -43,7 +41,7 @@ describe('cache', () => {
 			const stub = sinon.stub(Cache, 'getFilePath');
 			stub
 				.withArgs('non', 'existent')
-				.returns(`${ testTempDir }/non-existent`);
+				.returns(`${ TestHelper.testTempDir }/non-existent`);
 
 			assert.equal(
 				Cache.fileExists('non', 'existent'),
@@ -56,10 +54,10 @@ describe('cache', () => {
 			const stub = sinon.stub(Cache, 'getFilePath');
 			stub
 				.withArgs('a', 'b')
-				.returns(`${ testTempDir }/pro-existent`);
+				.returns(`${ TestHelper.testTempDir }/pro-existent`);
 
-			createFileIfDoesntExist(
-				testTempDir,
+			TestHelper.createFileIfDoesntExist(
+				TestHelper.testTempDir,
 				'pro-existent',
 				'testContent'
 			);
@@ -77,22 +75,22 @@ describe('cache', () => {
 			const stub = sinon.stub(Cache, 'getFilePath');
 			stub
 				.withArgs('a', 'b')
-				.returns(`${ testTempDir }/deletable-file`);
+				.returns(`${ TestHelper.testTempDir }/deletable-file`);
 
-			deleteFileIfExists(
-				testTempDir,
+			TestHelper.deleteFileIfExists(
+				TestHelper.testTempDir,
 				'deletable-file'
 			);
 
 			await Cache.checkAndMaybeDownload(
 				'a',
 				'b',
-				downloadCallback
+				TestHelper.downloadCallback
 			);
 
 			assert(
 				fs.readFileSync(
-					`${ testTempDir }/deletable-file`,
+					`${ TestHelper.testTempDir }/deletable-file`,
 					{ encoding: 'utf8' }
 				),
 				'testing'
@@ -104,12 +102,12 @@ describe('cache', () => {
 			const stub = sinon.stub(Cache, 'getFilePath');
 			stub
 				.withArgs('a', 'b')
-				.returns(`${ testTempDir }/existent-file`);
+				.returns(`${ TestHelper.testTempDir }/existent-file`);
 
 			const callbackSpy = sinon.spy();
 
-			createFileIfDoesntExist(
-				testTempDir,
+			TestHelper.createFileIfDoesntExist(
+				TestHelper.testTempDir,
 				'existent-file',
 				'content'
 			);
@@ -134,10 +132,10 @@ describe('cache', () => {
 			const stub = sinon.stub(Cache, 'getFilePath');
 			stub
 				.withArgs('a', 'b')
-				.returns(`${ testTempDir }/existent-file`);
+				.returns(`${ TestHelper.testTempDir }/existent-file`);
 
-			createFileIfDoesntExist(
-				testTempDir,
+			TestHelper.createFileIfDoesntExist(
+				TestHelper.testTempDir,
 				'existent-file',
 				'content'
 			);
@@ -151,46 +149,4 @@ describe('cache', () => {
 		});
 	});
 });
-
-
-function createFileIfDoesntExist(
-	dir:      string,
-	fileName: string,
-	content:  string
-): void {
-	if(!fs.existsSync(dir)) {
-		fs.mkdirSync(dir, { recursive: true });
-	}
-
-	const filePath: string = `${ dir }/${ fileName }`;
-
-	if(!fs.existsSync(filePath)) {
-		fs.writeFileSync(
-			filePath,
-			content,
-			{
-				encoding: 'utf8'
-			}
-		);
-	}
-}
-
-function deleteFileIfExists(
-	dir:      string,
-	fileName: string
-): void {
-	const filePath: string = `${ dir }/${ fileName }`;
-
-	if(fs.existsSync(filePath)) {
-		fs.unlinkSync(filePath);
-	}
-}
-
-function downloadCallback(): Promise<any> {
-	return Promise.resolve({
-		data: {
-			content: 'dGVzdGluZw=='
-		}
-	});
-}
 
