@@ -1,4 +1,5 @@
 import Bull from "bull";
+import Debug from "debug";
 import express from "express";
 
 import * as auth from "../libs/auth";
@@ -9,13 +10,14 @@ import {
 	AggregatedValidatorVerdict,
 	VerdictCount
 } from "../libs/cp-validator";
-
 import Tree from "../models/tree";
+
+
+const debug = Debug('routes:github');
 
 
 const validateQueue: any = new Bull('validate-queue', process.env.REDIS_URL);
 validateQueue.on('error', err => {
-	console.log(err);
 	throw err;
 });
 
@@ -135,7 +137,8 @@ validateQueue.process(async (job) => {
 
 
 validateQueue.on('completed', async (job, result) => {
-	console.log('job completed');
+	debug(`Job completed.`);
+
 	const octokit: any = await auth.getClient(
 		job.data.installationId,
 		job.data.repositoryId
@@ -197,7 +200,7 @@ async function test2() {
 			tree:           '171beceef6d236c8a2da665ccfb375aa17360faf'
 		});
 	} catch(e) {
-		console.log(e);
+		debug(e);
 	}
 }
 //test2();

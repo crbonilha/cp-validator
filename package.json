@@ -4,7 +4,7 @@
   "description": "validate competitive programming problems",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && DEBUG=* node dist/src/server.js",
+    "start": "tsc && DEBUG=app,libs:*,models:*,routes:* node dist/src/server.js",
     "test": "tsc && mocha dist/tests/**/*.js"
   },
   "repository": {

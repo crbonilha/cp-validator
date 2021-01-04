@@ -1,3 +1,5 @@
+import Debug from "debug";
+
 import * as regex from "../libs/regex";
 import * as util from "../libs/util";
 
@@ -5,6 +7,9 @@ import Cache from "../libs/cache";
 import Solution from "./solution";
 import TestCase from "./test-case";
 import Validator from "./validator";
+
+
+const debug = Debug('models:tree');
 
 
 export interface IoInterface {
@@ -72,7 +77,7 @@ export default class Tree {
 	private getBlob(
 		file_sha: string
 	): Promise<any> {
-		console.log(`Downloading ${ file_sha }.`);
+		debug(`Downloading ${ file_sha }.`);
 		return this.octokit.git.getBlob({
 			owner:    this.owner,
 			repo:     this.repo,
@@ -85,7 +90,7 @@ export default class Tree {
 		if(this.tree === undefined) {
 			throw `Trying to download files from tree before initializing the tree.`;
 		}
-		console.log(`Trimming tree.`);
+		debug(`Trimming tree.`);
 
 		this.trimmedTree = {
 			problems: []
@@ -162,6 +167,7 @@ export default class Tree {
 		if(this.trimmedTree === undefined) {
 			throw `Trying to download files from tree before trimming it.`;
 		}
+		debug(`Downloading files.`);
 
 		for (const problem of this.trimmedTree.problems) {
 			for (const solution of problem.solutions) {

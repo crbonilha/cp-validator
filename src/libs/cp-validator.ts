@@ -5,6 +5,7 @@ import { IoInterface } from "../models/tree";
 import Solution from "../models/solution";
 import TestCase from "../models/test-case";
 import Validator from "../models/validator";
+import { RunResult} from "../libs/exec-helper";
 
 
 const debug = Debug('libs:cp-validator');
@@ -160,10 +161,10 @@ function validateInput(
 ): () => Promise<ValidatorRun> {
 	return async () => {
 		debug(`Running validator ${ validator.name } on input ${ input.name }.`);
-		const runResult: any = await validator.run(input);
+		const runResult: RunResult = await validator.run(input);
 
 		let passed: boolean = true;
-		if(runResult.error && runResult.error.indexOf('Code:') !== -1) {
+		if(runResult.killed || runResult.code || runResult.signal) {
 			passed = false;
 		}
 

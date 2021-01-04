@@ -5,8 +5,8 @@ import TestCase from "./test-case";
 
 
 export default class Validator {
-	readonly sha: string;
-	readonly name: string;
+	readonly sha:      string;
+	readonly name:     string;
 	readonly language: string;
 
 
