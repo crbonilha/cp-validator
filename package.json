@@ -4,7 +4,7 @@
   "description": "validate competitive programming problems",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node dist/server.js",
+    "start": "tsc && DEBUG=* node dist/src/server.js",
     "test": "tsc && mocha dist/tests/**/*.js"
   },
   "repository": {
@@ -23,6 +23,7 @@
     "body-parser": "^1.19.0",
     "bull": "^3.20.0",
     "compile-run": "^2.3.4",
+    "debug": "^4.3.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "git-clone": "^0.1.0",

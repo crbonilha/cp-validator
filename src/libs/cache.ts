@@ -1,6 +1,10 @@
 import * as fs from "fs";
+import Debug from "debug";
 
 import { decodeResponse } from "./util";
+
+
+const debug = Debug('libs:cache');
 
 
 export default class Cache {
@@ -44,6 +48,7 @@ export default class Cache {
 
 			const filePath: string = Cache.getFilePath(sha, fileName);
 
+			debug(`Saving file ${ filePath }.`);
 			fs.writeFile(
 				filePath,
 				content,
@@ -54,6 +59,7 @@ export default class Cache {
 					if(err) {
 						return reject(err);
 					}
+					debug(`Successful.`);
 					resolve(filePath);
 				}
 			);
@@ -70,6 +76,7 @@ export default class Cache {
 			return;
 		}
 
+		debug(`Downloading sha ${ sha }.`);
 		const downloadResult: any = await downloadCallback();
 		const decodedResponse: string = decodeResponse(downloadResult.data.content);
 		await Cache.saveFile(sha, fileName, decodedResponse);

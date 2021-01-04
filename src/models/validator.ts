@@ -8,18 +8,15 @@ export default class Validator {
 	readonly sha: string;
 	readonly name: string;
 	readonly language: string;
-	readonly verbose: boolean;
 
 
 	constructor(
-		sha: string,
-		name: string,
-		verbose: boolean = false
+		sha:  string,
+		name: string
 	) {
 		this.sha      = sha;
 		this.name     = name;
 		this.language = util.getLanguage(this.name);
-		this.verbose  = verbose;
 	}
 
 
@@ -40,8 +37,7 @@ export default class Validator {
 		if(!this.hasCodeBeenCompiled()) {
 			await execHelper.compile(
 				Cache.getFilePath(this.sha, this.name),
-				this.language,
-				this.verbose
+				this.language
 			);
 		}
 	}
@@ -49,17 +45,16 @@ export default class Validator {
 
 	async run(
 		testCase: TestCase
-	): Promise<any> {
+	): Promise<execHelper.RunResult> {
 		if(!this.hasCodeBeenCompiled()) {
 			throw `Trying to run validator before compiling it.`;
 		}
 
-		const runResponse: any = await execHelper.run(
+		const runResponse: execHelper.RunResult = await execHelper.run(
 			execHelper.getCompileOutputPath(
 				Cache.getFilePath(this.sha, this.name)
 			),
-			Cache.getFilePath(testCase.sha, testCase.name),
-			this.verbose
+			Cache.getFilePath(testCase.sha, testCase.name)
 		);
 
 		return runResponse;

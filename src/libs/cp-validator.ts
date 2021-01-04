@@ -1,9 +1,13 @@
+import Debug from "debug";
 import sequential from "promise-sequential";
 
 import { IoInterface } from "../models/tree";
 import Solution from "../models/solution";
 import TestCase from "../models/test-case";
 import Validator from "../models/validator";
+
+
+const debug = Debug('libs:cp-validator');
 
 
 enum Verdict {
@@ -77,6 +81,7 @@ function incrementVerdictCount(
 function aggregateResult(
 	runs: SolutionRun[]
 ): AggregatedVerdict[] {
+	debug(`Aggregating solutions verdicts.`);
 	const aggregatedVerdicts: AggregatedVerdict[] = [];
 	for(const run of runs) {
 		if(!aggregatedVerdicts.some(av => av.solutionName === run.solutionName)) {
@@ -116,7 +121,7 @@ function testSolution(
 	io:       IoInterface
 ): () => Promise<SolutionRun> {
 	return async () => {
-		console.log(`Running solution ${ solution.name } on input ${ io.in.name }.`);
+		debug(`Running solution ${ solution.name } on input ${ io.in.name }.`);
 		const runResult: any = await solution.run(io.in);
 
 		var verdict: Verdict = Verdict.other;
@@ -154,7 +159,7 @@ function validateInput(
 	input:     TestCase
 ): () => Promise<ValidatorRun> {
 	return async () => {
-		console.log(`Running validator ${ validator.name } on input ${ input.name }.`);
+		debug(`Running validator ${ validator.name } on input ${ input.name }.`);
 		const runResult: any = await validator.run(input);
 
 		let passed: boolean = true;
@@ -183,6 +188,7 @@ export async function testSolutions(
 		} catch(e) {
 			runPromises.push(
 				() => {
+					debug(`Failed to compile ${ solution.name }.`);
 					return Promise.resolve({
 						solutionName: solution.name,
 						verdict:      Verdict.compilationError,
@@ -204,9 +210,7 @@ export async function testSolutions(
 	}
 
 	return sequential(runPromises)
-	.then(runs => {
-		return aggregateResult(runs);
-	});
+	.then(aggregateResult);
 }
 
 
@@ -222,6 +226,7 @@ export async function validateInputs(
 		} catch(e) {
 			runPromises.push(
 				() => {
+					debug(`Failed to compile ${ validator.name }.`);
 					return Promise.resolve({
 						validatorName: validator.name,
 						testCaseName:  '',
@@ -244,6 +249,7 @@ export async function validateInputs(
 
 	return sequential(runPromises)
 	.then((validatorRuns: ValidatorRun[]) => {
+		debug(`Aggregating validators verdicts.`);
 		const avvList: AggregatedValidatorVerdict[] = [];
 		for(const vr of validatorRuns) {
 			if(!avvList.some(avv => avv.validatorName === vr.validatorName)) {

@@ -1,16 +1,18 @@
 import * as crypto from "crypto";
 
+import Debug from "debug";
 import express from "express";
 import { createAppAuth } from "@octokit/auth-app";
 import * as octokitRest from "@octokit/rest";
 
 
+const debug = Debug('libs:auth');
 const sigHeaderName: string = 'X-Hub-Signature';
 
 
 async function createJWT(
 	installationId: number,
-	repositoryId: number
+	repositoryId:   number
 ): Promise<string> {
 	try {
 		const auth: any = createAppAuth({
@@ -20,15 +22,16 @@ async function createJWT(
 			clientSecret:   process.env.GITHUB_APP_CLIENT_SECRET
 		});
 
+		debug(`Fetching JWT.`);
 		const authResult: any = await auth({
 			type:           'installation',
 			installationId: installationId,
 			repositoryIds:  [ repositoryId ]
 		});
+		debug(`Successful fetch.`);
 		return authResult.token;
 	} catch(e) {
-		console.log('Failed to authenticate to Github');
-		console.log(e);
+		debug(`Failed to fetch JWT.`);
 		throw e;
 	}
 }
@@ -36,7 +39,7 @@ async function createJWT(
 
 export async function getClient(
 	installationId: number,
-	repositoryId: number
+	repositoryId:   number
 ): Promise<any> {
 	const jwt: string = await createJWT(installationId, repositoryId);
 
@@ -49,11 +52,11 @@ export async function getClient(
 
 
 export function validateWebhookMiddleware(
-	req: express.Request,
-	res: express.Response,
+	req:  express.Request,
+	res:  express.Response,
 	next: express.NextFunction
 ): void {
-	console.log('validating request to github');
+	debug(`Validating request source (github).`);
 
 	const payload: any = req.body;
 	if(!payload) {

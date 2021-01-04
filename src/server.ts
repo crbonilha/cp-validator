@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { json, urlencoded } from "body-parser";
+import Debug from "debug";
 import express from "express";
 
 import { validateWebhookMiddleware } from "./libs/auth";
@@ -12,7 +13,7 @@ import * as routeGithub from "./routes/github";
 
 const app: express.Application = express();
 const port: number = 3000;
-
+const debug = Debug('app');
 
 app.use(urlencoded({ extended: true }));
 app.use(json());
@@ -23,7 +24,7 @@ app.post('/github', (
 	req: express.Request,
 	res: express.Response
 ) => {
-	console.log('got a post request on github');
+	debug(`Got a POST request on /github.`);
 
 	if(req.get('X-Github-Event') === 'push') {
 		return routeGithub.pushEvent(req, res);
@@ -43,6 +44,6 @@ app.get('/', (
 
 
 app.listen(port, () => {
-	console.log('listening on port ' + port);
+	debug(`Listening on port ${ port }.`);
 });
 
