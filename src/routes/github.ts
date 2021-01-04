@@ -22,19 +22,94 @@ validateQueue.on('error', err => {
 });
 
 
-function maybeAddVerdictToMessage(
-	verdict:          VerdictCount,
-	verdictShortName: string,
-	total:            number
+function getAggregatedVerdictsAsTable(
+	aggregatedVerdicts: AggregatedVerdict[]
 ): string {
-	let verdictMessage = '';
-	if(verdict && verdict.count > 0) {
-		verdictMessage += `${ verdictShortName }: ${ verdict.count } / ${ total }\n`;
-		if(verdict.testCaseNames.length > 0) {
-			verdictMessage += `-- [ ${ verdict.testCaseNames.join(', ') } ]\n`;
-		}
+	let message: string = '';
+
+	if(aggregatedVerdicts.length === 0) {
+		message += 'There are no solutions for this problem.\n';
+		return message;
 	}
-	return verdictMessage;
+
+	// header
+	message += 'Solution | Verdict | AC | WA | TLE | SF | CE | OTHER | TOTAL\n';
+	message += '-------- | ------- | -- | -- | --- | -- | -- | ----- | -----\n';
+
+	// rows
+	for(const av of aggregatedVerdicts) {
+		let row: string = '';
+		row += `**${ av.solutionName }** |`;
+
+		let acCount:        number = av.accepted.count,
+			waCount:    number = 0,
+			tleCount:   number = 0,
+			sfCount:    number = 0,
+			ceCount:    number = 0,
+			otherCount: number = 0;
+
+		let verdict: string = '';
+		if(av.compilationError) {
+			verdict = verdict || 'CE';
+			ceCount = av.compilationError.count;
+		}
+		if(av.wrongAnswer) {
+			verdict = verdict || 'WA';
+			waCount = av.wrongAnswer.count;
+		}
+		if(av.timeLimitExceeded) {
+			verdict = verdict || 'TLE';
+			tleCount = av.timeLimitExceeded.count;
+		}
+		if(av.segmentationFault) {
+			verdict = verdict || 'SF';
+			sfCount = av.segmentationFault.count;
+		}
+		if(av.aborted) {
+			verdict = verdict || 'OTHER';
+			otherCount = av.aborted.count;
+		}
+		verdict = verdict || 'AC';
+
+		row += ` **${ verdict }** | ${ acCount } | ${ waCount } | ${ tleCount } |`;
+		row += ` ${ sfCount } | ${ ceCount } | ${ otherCount } | ${ av.total }`;
+
+		message += `${ row }\n`;
+	}
+
+	return message;
+}
+
+
+function getAggregatedValidatorVerdictsAsTable(
+	aggregatedValidatorVerdicts: AggregatedValidatorVerdict[]
+): string {
+	let message: string = '';
+
+	if(aggregatedValidatorVerdicts.length === 0) {
+		message += 'There are no validators for this problem.\n';
+		return message;
+	}
+
+	// header
+	message += 'Validator | Verdict | OK | NOT OK | TOTAL\n';
+	message += '--------- | ------- | -- | ------ | -----\n';
+
+	// rows
+	for(const avv of aggregatedValidatorVerdicts) {
+		message += `**${ avv.validatorName }** |`;
+
+		if(avv.passed === avv.total) {
+			message += ` **OK** | ${ avv.passed } | 0 | ${ avv.total }\n`;
+		}
+		else {
+			message += ` **NOT OK** | ${ avv.passed } | ${ avv.total-avv.passed } | ${ avv.total }\n`;
+		}
+
+		message += `\n`;
+	}
+
+	return message;
 }
 
 
@@ -62,71 +137,19 @@ validateQueue.process(async (job) => {
 					tree.getSolutions(problemName),
 					tree.getAllIo(problemName)
 				);
-
 				commitMessage += `### Solutions\n\n`;
-				for(const av of aggregatedVerdicts) {
-					commitMessage += `**- ${ av.solutionName }: `;
-
-					const verdict = [];
-					if(av.accepted.count == av.total) {
-						verdict.push('AC');
-					}
-					else {
-						if(av.wrongAnswer) {
-							verdict.push('WA');
-						}
-						if(av.timeLimitExceeded) {
-							verdict.push('TLE');
-						}
-						if(av.segmentationFault) {
-							verdict.push('SF');
-						}
-						if(av.compilationError) {
-							verdict.push('CE');
-						}
-						if(av.aborted) {
-							verdict.push('OTHER');
-						}
-					}
-					commitMessage += `${ verdict.join(',') }**\n`;
-
-					commitMessage += `AC: ${ av.accepted.count } / ${ av.total }\n`;
-					commitMessage += maybeAddVerdictToMessage(
-						av.wrongAnswer, 'WA', av.total);
-					commitMessage += maybeAddVerdictToMessage(
-						av.timeLimitExceeded, 'TLE', av.total);
-					commitMessage += maybeAddVerdictToMessage(
-						av.segmentationFault, 'SF', av.total);
-					commitMessage += maybeAddVerdictToMessage(
-						av.compilationError, 'CE', av.total);
-					commitMessage += maybeAddVerdictToMessage(
-						av.aborted, 'OTHER', av.total);
-
-					commitMessage += `\n`;
-				}
-
+				commitMessage += getAggregatedVerdictsAsTable(aggregatedVerdicts);
+				commitMessage += '\n';
 
 				const aggregatedValidatorVerdicts: AggregatedValidatorVerdict[] =
 					await validateInputs(
 						tree.getValidators(problemName),
 						tree.getAllIo(problemName)
 					);
-
 				commitMessage += `### Validators\n\n`;
-				for(const avv of aggregatedValidatorVerdicts) {
-					commitMessage += `**- ${ avv.validatorName }: `;
-
-					if(avv.passed === avv.total) {
-						commitMessage += `Passed (${ avv.passed })\n`;
-					}
-					else {
-						commitMessage += `Not passed ${ avv.passed } / ${ avv.total }\n`;
-						commitMessage +=
-							`-- [ ${ avv.failedTestCaseNames.join(', ') } ]\n`;
-					}
-
-					commitMessage += `\n`;
-				}
+				commitMessage += getAggregatedValidatorVerdictsAsTable(
+					aggregatedValidatorVerdicts);
+				commitMessage += '\n';
 			}
 		} catch(e) {
 			commitMessage = e;
