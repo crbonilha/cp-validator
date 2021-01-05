@@ -187,28 +187,19 @@ export default class Tree {
 			for (const ioFolder of problem.ioFolders) {
 				for (const io of ioFolder.ios) {
 					if(io.in !== undefined) {
-						await Cache.checkAndMaybeDownload(
-							io.in.sha,
-							io.in.name,
-							this.getBlob.bind(this, io.in.sha)
-						);
+						await io.in.download(
+							this.getBlob.bind(this, io.in.sha));
 					}
 					if(io.out !== undefined) {
-						await Cache.checkAndMaybeDownload(
-							io.out.sha,
-							io.out.name,
-							this.getBlob.bind(this, io.out.sha)
-						);
+						await io.out.download(
+							this.getBlob.bind(this, io.out.sha));
 					}
 				}
 			}
 
 			for (const validator of problem.validators) {
-				await Cache.checkAndMaybeDownload(
-					validator.sha,
-					validator.name,
-					this.getBlob.bind(this, validator.sha)
-				);
+				await validator.download(
+					this.getBlob.bind(this, validator.sha));
 			}
 		}
 	}
