@@ -1,42 +1,65 @@
+import assert from "assert";
+
 import * as execHelper from "../libs/exec-helper";
 import * as util from "../libs/util";
 import Cache from "../libs/cache";
 import TestCase from "./test-case";
+import { DownloadInterface } from "./tree";
 
 
 export default class Solution {
-	readonly sha: string;
+	readonly sha:  string;
 	readonly name: string;
-	readonly language: string;
+
+	readonly language:         string;
+	readonly filePath:         string;
+	readonly compiledFilePath: string;
 
 
 	constructor(
 		sha:  string,
 		name: string
 	) {
-		this.sha      = sha;
-		this.name     = name;
-		this.language = util.getLanguage(this.name);
+		this.sha  = sha;
+		this.name = name;
+
+		this.language         = util.getLanguage(this.name);
+		this.filePath         = Cache.getFilePath(this.sha, this.name);
+		this.compiledFilePath = execHelper.getCompileOutputPath(this.filePath);
 	}
 
 
-	hasCodeBeenCompiled(): boolean {
-		return Cache.fileAtPathExists(
-			execHelper.getCompileOutputPath(
-				Cache.getFilePath(this.sha, this.name)
-			)
-		);
+	isDownloaded(): boolean {
+		return Cache.fileAtPathExists(this.filePath);
+	}
+
+
+	isCompiled(): boolean {
+		return Cache.fileAtPathExists(this.compiledFilePath);
+	}
+
+
+	download(
+		downloadCallback: () => Promise<DownloadInterface>
+	): Promise<void> {
+		if(!this.isDownloaded()) {
+			return Cache.checkAndMaybeDownload(
+				this.sha,
+				this.name,
+				downloadCallback
+			);
+		}
+
+		return Promise.resolve();
 	}
 
 
 	async compile(): Promise<void> {
-		if(!Cache.fileExists(this.sha, this.name)) {
-			throw `Trying to compile solution before downloading it.`;
-		}
+		assert(this.isDownloaded(), `Trying to compile solution ${ this.name } before downloading it.`);
 
-		if(!this.hasCodeBeenCompiled()) {
+		if(!this.isCompiled()) {
 			await execHelper.compile(
-				Cache.getFilePath(this.sha, this.name),
+				this.filePath,
 				this.language
 			);
 		}
@@ -46,15 +69,14 @@ export default class Solution {
 	async run(
 		testCase: TestCase
 	): Promise<execHelper.RunResult> {
-		if(!this.hasCodeBeenCompiled()) {
-			throw `Trying to run solution before compiling it.`;
-		}
+		assert(this.isDownloaded(), `Trying to run solution ${ this.name } before downloading it.`);
+		assert(this.isCompiled(), `Trying to run solution ${ this.name } before compiling it.`);
+		assert(testCase.isDownloaded(),
+			`Trying to run solution ${ this.name } on an input that hasn't yet been downloaded.`);
 
 		const runResponse: execHelper.RunResult = await execHelper.run(
-			execHelper.getCompileOutputPath(
-				Cache.getFilePath(this.sha, this.name)
-			),
-			Cache.getFilePath(testCase.sha, testCase.name)
+			this.compiledFilePath,
+			testCase.filePath
 		);
 
 		return runResponse;

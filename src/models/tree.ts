@@ -12,6 +12,10 @@ import Validator from "./validator";
 const debug = Debug('models:tree');
 
 
+export interface DownloadInterface {
+	content: string;
+}
+
 export interface IoInterface {
 	number: number;
 	in?:    TestCase;
@@ -74,15 +78,20 @@ export default class Tree {
 	}
 
 
-	private getBlob(
+	private async getBlob(
 		file_sha: string
-	): Promise<any> {
+	): Promise<DownloadInterface> {
 		debug(`Downloading ${ file_sha }.`);
-		return this.octokit.git.getBlob({
+
+		const downloadResult: any = await this.octokit.git.getBlob({
 			owner:    this.owner,
 			repo:     this.repo,
 			file_sha: file_sha
 		});
+
+		return {
+			content: downloadResult.data.content
+		};
 	}
 
 
@@ -171,11 +180,8 @@ export default class Tree {
 
 		for (const problem of this.trimmedTree.problems) {
 			for (const solution of problem.solutions) {
-				await Cache.checkAndMaybeDownload(
-					solution.sha,
-					solution.name,
-					this.getBlob.bind(this, solution.sha)
-				);
+				await solution.download(
+					this.getBlob.bind(this, solution.sha));
 			}
 
 			for (const ioFolder of problem.ioFolders) {

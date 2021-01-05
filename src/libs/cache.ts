@@ -2,6 +2,7 @@ import * as fs from "fs";
 import Debug from "debug";
 
 import { decodeResponse } from "./util";
+import { DownloadInterface } from "../models/tree";
 
 
 const debug = Debug('libs:cache');
@@ -70,15 +71,18 @@ export default class Cache {
 	static async checkAndMaybeDownload(
 		sha:              string,
 		fileName:         string,
-		downloadCallback: () => any
+		downloadCallback: () => Promise<DownloadInterface>
 	): Promise<void> {
 		if(Cache.fileExists(sha, fileName)) {
 			return;
 		}
 
 		debug(`Downloading sha ${ sha }.`);
-		const downloadResult: any = await downloadCallback();
-		const decodedResponse: string = decodeResponse(downloadResult.data.content);
+		const downloadResult: DownloadInterface = await downloadCallback();
+
+		debug(`Decoding sha ${ sha }.`);
+		const decodedResponse: string = decodeResponse(downloadResult.content);
+
 		await Cache.saveFile(sha, fileName, decodedResponse);
 	}
 
