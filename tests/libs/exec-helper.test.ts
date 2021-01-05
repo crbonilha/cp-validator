@@ -2,6 +2,7 @@ import assert from "assert";
 
 import * as execHelper from "../../src/libs/exec-helper";
 import TestHelper from "../test-helper";
+import * as TestObjects from "../test-objects";
 
 
 describe('exec-helper', () => {
@@ -43,7 +44,7 @@ describe('exec-helper', () => {
 			TestHelper.createFileIfDoesntExist(
 				TestHelper.testTempDir,
 				'valid-cpp-code.cpp',
-				validCppSource
+				TestObjects.validCppSource
 			);
 
 			await assert.doesNotReject(
@@ -58,7 +59,7 @@ describe('exec-helper', () => {
 			TestHelper.createFileIfDoesntExist(
 				TestHelper.testTempDir,
 				'invalid-cpp-code.cpp',
-				compilationErrorCppSource
+				TestObjects.compilationErrorCppSource
 			);
 
 			await assert.rejects(
@@ -83,7 +84,7 @@ describe('exec-helper', () => {
 		it('should throw when the input doesnt exist', async () => {
 			const sourcePath: string = await createFileAndCompileCode(
 				'valid-cpp-code.cpp',
-				validCppSource
+				TestObjects.validCppSource
 			);
 
 			await assert.rejects(
@@ -97,7 +98,7 @@ describe('exec-helper', () => {
 		it('should be killed if the code doesnt finish before the timelimit', async () => {
 			const sourcePath: string = await createFileAndCompileCode(
 				'slow-cpp-code.cpp',
-				tleCppSource
+				TestObjects.tleCppSource
 			);
 			const inputFile: string = createInputFile();
 
@@ -112,7 +113,7 @@ describe('exec-helper', () => {
 		it('should be killed if there\'s a segmentation fault', async () => {
 			const sourcePath: string = await createFileAndCompileCode(
 				'segmentation-cpp-code.cpp',
-				segmentationCppSource
+				TestObjects.segmentationCppSource
 			);
 			const inputFile: string = createInputFile();
 
@@ -145,7 +146,7 @@ describe('exec-helper', () => {
 		it('should return the output', async () => {
 			const sourcePath: string = await createFileAndCompileCode(
 				'valid-cpp-code.cpp',
-				validCppSource
+				TestObjects.validCppSource
 			);
 			const inputFile: string = createInputFile();
 
@@ -187,48 +188,3 @@ function createInputFile(): string {
 	);
 }
 
-const validCppSource: string = `
-	#include <bits/stdc++.h>
-	int main() {
-		int a, b;
-		scanf("%d %d", &a, &b);
-		printf("%d\\n", a+b);
-		return 0;
-	}
-`;
-const compilationErrorCppSource: string = `
-	#include <bits/stdc++.h>
-	int man() {
-		return 0;
-	}
-`;
-const tleCppSource: string = `
-	#include <bits/stdc++.h>
-	int main() {
-		int aux = 0;
-		for(int i=0; i<1e9; i++) {
-			aux += rand()%1000;
-		}
-		printf("%d\\n", aux);
-	}
-`;
-const segmentationCppSource: string = `
-	#include <bits/stdc++.h>
-	int main() {
-		int v[10];
-		int aux;
-		for(int i=0; i<1e9; i++) {
-			aux += v[i];
-		}
-	}
-`;
-const memoryCppSource: string = `
-	#include <bits/stdc++.h>
-	using namespace std;
-	int main() {
-		vector<int> v(1e9);
-		for(int i=0; i<1e9; i++) {
-			v.push_back(rand()%1000);
-		}
-	}
-`;

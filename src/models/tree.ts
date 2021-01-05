@@ -13,7 +13,8 @@ const debug = Debug('models:tree');
 
 
 export interface DownloadInterface {
-	content: string;
+	content:  string;
+	encoding: string;
 }
 
 export interface IoInterface {
@@ -90,7 +91,8 @@ export default class Tree {
 		});
 
 		return {
-			content: downloadResult.data.content
+			content:  downloadResult.data.content,
+			encoding: downloadResult.data.encoding
 		};
 	}
 

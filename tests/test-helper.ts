@@ -1,5 +1,7 @@
 import fs from "fs";
 
+import { DownloadInterface } from "../src/models/tree";
+
 
 export default class TestHelper {
 	static readonly testTempDir: string = './temp/test';
@@ -38,11 +40,10 @@ export default class TestHelper {
 	}
 
 
-	static downloadCallback(): Promise<any> {
+	static downloadCallback(): Promise<DownloadInterface> {
 		return Promise.resolve({
-			data: {
-				content: 'dGVzdGluZw=='
-			}
+			content:  'dGVzdGluZw==',
+			encoding: 'base64'
 		});
 	}
 }

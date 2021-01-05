@@ -9,14 +9,16 @@ const debug = Debug('libs:cache');
 
 
 export default class Cache {
-	static readonly tempDir: string = './temp';
+	static getTempDir(): string {
+		return './temp';
+	}
 
 
 	static getFilePath(
 		sha:      string,
 		fileName: string
 	): string {
-		return `${ Cache.tempDir }/${ sha }-${ fileName }`;
+		return `${ Cache.getTempDir() }/${ sha }-${ fileName }`;
 	}
 
 
@@ -43,8 +45,8 @@ export default class Cache {
 		content:  string
 	): Promise<string> {
 		return new Promise((resolve, reject) => {
-			if(!fs.existsSync(Cache.tempDir)) {
-				fs.mkdirSync(Cache.tempDir);
+			if(!fs.existsSync(Cache.getTempDir())) {
+				fs.mkdirSync(Cache.getTempDir());
 			}
 
 			const filePath: string = Cache.getFilePath(sha, fileName);
@@ -81,7 +83,9 @@ export default class Cache {
 		const downloadResult: DownloadInterface = await downloadCallback();
 
 		debug(`Decoding sha ${ sha }.`);
-		const decodedResponse: string = decodeResponse(downloadResult.content);
+		const decodedResponse: string = decodeResponse(
+			downloadResult.content,
+			downloadResult.encoding as BufferEncoding);
 
 		await Cache.saveFile(sha, fileName, decodedResponse);
 	}

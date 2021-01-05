@@ -7,11 +7,21 @@ import TestHelper from "../test-helper";
 
 
 describe('cache', () => {
+	let cacheGetTempDirStub = null;
+
+	afterEach(() => {
+		if(cacheGetTempDirStub) {
+			cacheGetTempDirStub.restore();
+		}
+		cacheGetTempDirStub = null;
+	});
+
+
 	describe('getFilePath', () => {
 		it('should return the correct file path', () => {
 			assert.equal(
 				Cache.getFilePath('a', 'b'),
-				`${ Cache.tempDir }/a-b`
+				`${ Cache.getTempDir() }/a-b`
 			);
 		});
 	});
@@ -38,23 +48,17 @@ describe('cache', () => {
 
 	describe('fileExists', () => {
 		it('should not find a file that doesn\'t exist', () => {
-			const stub = sinon.stub(Cache, 'getFilePath');
-			stub
-				.withArgs('non', 'existent')
-				.returns(`${ TestHelper.testTempDir }/non-existent`);
+			cacheGetTempDirStub = sinon.stub(Cache, 'getTempDir');
+			cacheGetTempDirStub.returns(TestHelper.testTempDir);
 
 			assert.equal(
 				Cache.fileExists('non', 'existent'),
 				false
 			);
-
-			stub.restore();
 		});
 		it('should find a file that exists', () => {
-			const stub = sinon.stub(Cache, 'getFilePath');
-			stub
-				.withArgs('a', 'b')
-				.returns(`${ TestHelper.testTempDir }/pro-existent`);
+			cacheGetTempDirStub = sinon.stub(Cache, 'getTempDir');
+			cacheGetTempDirStub.returns(TestHelper.testTempDir);
 
 			TestHelper.createFileIfDoesntExist(
 				TestHelper.testTempDir,
@@ -65,17 +69,13 @@ describe('cache', () => {
 			assert(
 				Cache.fileExists('a', 'b')
 			);
-
-			stub.restore();
 		});
 	});
 
 	describe('checkAndMaybeDownload', () => {
 		it('should download a file that doesn\'t exist', async () => {
-			const stub = sinon.stub(Cache, 'getFilePath');
-			stub
-				.withArgs('a', 'b')
-				.returns(`${ TestHelper.testTempDir }/deletable-file`);
+			cacheGetTempDirStub = sinon.stub(Cache, 'getTempDir');
+			cacheGetTempDirStub.returns(TestHelper.testTempDir);
 
 			TestHelper.deleteFileIfExists(
 				TestHelper.testTempDir,
@@ -83,8 +83,8 @@ describe('cache', () => {
 			);
 
 			await Cache.checkAndMaybeDownload(
-				'a',
-				'b',
+				'deletable',
+				'file',
 				TestHelper.downloadCallback
 			);
 
@@ -95,14 +95,10 @@ describe('cache', () => {
 				),
 				'testing'
 			);
-
-			stub.restore();
 		});
 		it('should not download a file that exists', async () => {
-			const stub = sinon.stub(Cache, 'getFilePath');
-			stub
-				.withArgs('a', 'b')
-				.returns(`${ TestHelper.testTempDir }/existent-file`);
+			cacheGetTempDirStub = sinon.stub(Cache, 'getTempDir');
+			cacheGetTempDirStub.returns(TestHelper.testTempDir);
 
 			const callbackSpy = sinon.spy();
 
@@ -113,8 +109,8 @@ describe('cache', () => {
 			);
 
 			await Cache.checkAndMaybeDownload(
-				'a',
-				'b',
+				'existent',
+				'file',
 				callbackSpy
 			);
 
@@ -122,17 +118,13 @@ describe('cache', () => {
 				callbackSpy.called,
 				false
 			);
-
-			stub.restore();
 		});
 	});
 
 	describe('getFileContent', () => {
 		it('should return the file content', () => {
-			const stub = sinon.stub(Cache, 'getFilePath');
-			stub
-				.withArgs('a', 'b')
-				.returns(`${ TestHelper.testTempDir }/existent-file`);
+			cacheGetTempDirStub = sinon.stub(Cache, 'getTempDir');
+			cacheGetTempDirStub.returns(TestHelper.testTempDir);
 
 			TestHelper.createFileIfDoesntExist(
 				TestHelper.testTempDir,
@@ -141,11 +133,9 @@ describe('cache', () => {
 			);
 
 			assert.equal(
-				Cache.getFileContent('a', 'b'),
+				Cache.getFileContent('existent', 'file'),
 				'content'
 			);
-
-			stub.restore();
 		});
 	});
 });
