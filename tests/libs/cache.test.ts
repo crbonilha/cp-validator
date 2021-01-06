@@ -67,7 +67,7 @@ describe('cache', () => {
 			);
 
 			assert(
-				Cache.fileExists('a', 'b')
+				Cache.fileExists('pro', 'existent')
 			);
 		});
 	});
