@@ -193,7 +193,7 @@ export async function testSolutions(
 					return Promise.resolve({
 						solutionName: solution.name,
 						verdict:      Verdict.compilationError,
-						testCaseName: ''
+						testCaseName: undefined
 					});
 				}
 			);

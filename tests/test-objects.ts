@@ -1,5 +1,6 @@
 import { DownloadInterface } from "../src/models/tree";
 import Solution from "../src/models/solution";
+import TestCase from "../src/models/test-case";
 
 
 export async function buildSolution(
@@ -23,6 +24,23 @@ export async function buildSolution(
 	return solution;
 }
 
+export async function buildTestCase(
+	name:    string,
+	type:    string,
+	content: string
+): Promise<TestCase> {
+	const testCase: TestCase = new TestCase('sha', name, type);
+
+	await testCase.download((): Promise<DownloadInterface> => {
+		return Promise.resolve({
+			content:  content,
+			encoding: 'ascii'
+		});
+	});
+
+	return testCase;
+};
+
 
 export const validCppSource: string = `
 	#include <bits/stdc++.h>
@@ -30,6 +48,15 @@ export const validCppSource: string = `
 		int a, b;
 		scanf("%d %d", &a, &b);
 		printf("%d\\n", a+b);
+		return 0;
+	}
+`;
+export const waCppSource: string = `
+	#include <bits/stdc++.h>
+	int main() {
+		int a, b;
+		scanf("%d %d", &a, &b);
+		printf("%d\\n", a-b);
 		return 0;
 	}
 `;
