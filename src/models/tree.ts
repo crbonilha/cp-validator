@@ -1,3 +1,4 @@
+import assert from "assert";
 import Debug from "debug";
 
 import * as regex from "../libs/regex";
@@ -46,8 +47,7 @@ export default class Tree {
 	readonly repo:    string;
 	readonly sha:     string;
 
-	private tree:        any;
-	private trimmedTree: TreeInterface;
+	private tree: TreeInterface;
 
 
 	constructor(
@@ -64,18 +64,25 @@ export default class Tree {
 
 
 	async init(): Promise<void> {
-		const response: any = await this.octokit.git.getTree({
+		const treeRawResponse: any[] = await this.fetchRepoTree();
+
+		this.tree = this.trimTree(treeRawResponse);
+
+		await this.downloadFiles();
+	}
+
+
+	private async fetchRepoTree(): Promise<any[]> {
+		debug(`Fetching repo tree.`);
+
+		const fetchResponse: any = await this.octokit.git.getTree({
 			owner:     this.owner,
 			repo:      this.repo,
 			tree_sha:  this.sha,
 			recursive: true
 		});
 
-		this.tree = response.data.tree;
-
-		this.trimTree();
-
-		await this.downloadFiles();
+		return fetchResponse.data.tree;
 	}
 
 
@@ -97,17 +104,16 @@ export default class Tree {
 	}
 
 
-	private trimTree(): void {
-		if(this.tree === undefined) {
-			throw `Trying to download files from tree before initializing the tree.`;
-		}
+	private trimTree(
+		rawTreeResponse: any[]
+	): TreeInterface {
 		debug(`Trimming tree.`);
 
-		this.trimmedTree = {
+		const tree: TreeInterface = {
 			problems: []
 		};
 
-		for(const treeItem of this.tree) {
+		for(const treeItem of rawTreeResponse) {
 			if(treeItem.type !== 'blob') {
 				continue;
 			}
@@ -118,16 +124,16 @@ export default class Tree {
 				continue;
 			}
 
-			const problemName = regex.getProblemName(treeItem.path);
-			if(!this.trimmedTree.problems.some(p => p.name === problemName)) {
-				this.trimmedTree.problems.push({
+			const problemName: string = regex.getProblemName(treeItem.path);
+			if(!tree.problems.some(p => p.name === problemName)) {
+				tree.problems.push({
 					name:       problemName,
 					ioFolders:  [],
 					solutions:  [],
 					validators: []
 				});
 			}
-			const problemTree = this.trimmedTree.problems.find(p => p.name === problemName);
+			const problemTree: ProblemInterface = tree.problems.find(p => p.name === problemName);
 
 			if(regex.isSolutionFile(treeItem.path)) {
 				problemTree.solutions.push(
@@ -146,7 +152,7 @@ export default class Tree {
 						ios:    []
 					});
 				}
-				const ioFolder =
+				const ioFolder: IoFolderInterface =
 					problemTree.ioFolders.find(io => io.folder === ioRegexResult.folder);
 
 				if(!ioFolder.ios.some(io => io.number === ioRegexResult.number)) {
@@ -154,7 +160,8 @@ export default class Tree {
 						number: ioRegexResult.number
 					});
 				}
-				const ioObj = ioFolder.ios.find(io => io.number === ioRegexResult.number);
+				const ioObj: IoInterface =
+					ioFolder.ios.find(io => io.number === ioRegexResult.number);
 
 				ioObj[ ioRegexResult.type ] = new TestCase(
 					treeItem.sha,
@@ -171,16 +178,17 @@ export default class Tree {
 				);
 			}
 		}
+
+		return tree;
 	}
 
 
 	private async downloadFiles(): Promise<void> {
-		if(this.trimmedTree === undefined) {
-			throw `Trying to download files from tree before trimming it.`;
-		}
+		assert(this.tree !== undefined,
+			`Trying to download files from tree before trimming it.`);
 		debug(`Downloading files.`);
 
-		for (const problem of this.trimmedTree.problems) {
+		for (const problem of this.tree.problems) {
 			for (const solution of problem.solutions) {
 				await solution.download(
 					this.getBlob.bind(this, solution.sha));
@@ -208,23 +216,21 @@ export default class Tree {
 
 
 	getProblemNames(): string[] {
-		if(this.trimmedTree === undefined) {
-			throw `Trying to get solutions before trimming the tree.`;
-		}
+		assert(this.tree !== undefined,
+			`Trying to get solutions before trimming the tree.`);
 
-		return this.trimmedTree.problems.map(problem => problem.name);
+		return this.tree.problems.map(problem => problem.name);
 	}
 
 
 	getSolutions(
 		problemName: string
 	): Solution[] {
-		if(this.trimmedTree === undefined) {
-			throw `Trying to get solutions before trimming the tree.`;
-		}
+		assert(this.tree !== undefined,
+			`Trying to get solutions before trimming the tree.`);
 
 		const problem: ProblemInterface =
-			this.trimmedTree.problems.find(problem => problem.name === problemName);
+			this.tree.problems.find(problem => problem.name === problemName);
 		return problem.solutions;
 	}
 
@@ -232,12 +238,11 @@ export default class Tree {
 	getAllIo(
 		problemName: string
 	): IoInterface[] {
-		if(this.trimmedTree === undefined) {
-			throw `Trying to get io before trimming the tree.`;
-		}
+		assert(this.tree !== undefined,
+			`Trying to get io before trimming the tree.`);
 
 		const problem: ProblemInterface =
-			this.trimmedTree.problems.find(problem => problem.name === problemName);
+			this.tree.problems.find(problem => problem.name === problemName);
 		return problem.ioFolders.reduce((acc, cur) => {
 			return acc.concat(cur.ios);
 		}, []);
@@ -247,12 +252,11 @@ export default class Tree {
 	getValidators(
 		problemName: string
 	): Validator[] {
-		if(this.trimmedTree === undefined) {
-			throw `Trying to get validators before trimming the tree.`;
-		}
+		assert(this.tree !== undefined,
+			`Trying to get validators before trimming the tree.`);
 
 		const problem: ProblemInterface =
-			this.trimmedTree.problems.find(problem => problem.name === problemName);
+			this.tree.problems.find(problem => problem.name === problemName);
 		return problem.validators;
 	}
 }
