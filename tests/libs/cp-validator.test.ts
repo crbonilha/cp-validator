@@ -164,6 +164,77 @@ describe('cp-validator', () => {
 					}
 				});
 		});
+
+		it('should return a consistent aggregated verdict with several different error results', async () => {
+			cacheGetTempDirStub = sinon.stub(Cache, 'getTempDir');
+			cacheGetTempDirStub.returns(TestHelper.testTempDir);
+			const io: IoInterface = await getIo();
+			const acSolution: Solution = await TestObjects.buildSolution(
+				'ac-solution.cpp', TestObjects.validCppSource);
+			const waSolution: Solution = await TestObjects.buildSolution(
+				'wa-solution.cpp', TestObjects.waCppSource);
+
+			const result: AggregatedVerdict[] = await testSolutions(
+				[acSolution, waSolution], [io]);
+
+			assert.equal(result.length, 2);
+			assert.deepStrictEqual(
+				result[0],
+				{
+					solutionName: 'ac-solution.cpp',
+					total:        1,
+					accepted: {
+						count:         1,
+						testCaseNames: []
+					}
+				});
+			assert.deepStrictEqual(
+				result[1],
+				{
+					solutionName: 'wa-solution.cpp',
+					total:        1,
+					accepted: {
+						count:         0,
+						testCaseNames: []
+					},
+					wrongAnswer: {
+						count:         1,
+						testCaseNames: [
+							'input.in'
+						]
+					}
+				});
+		});
+
+		it('should return a consistent mixed aggregated verdict for a not-always wrong answer solution', async () => {
+			cacheGetTempDirStub = sinon.stub(Cache, 'getTempDir');
+			cacheGetTempDirStub.returns(TestHelper.testTempDir);
+			const io: IoInterface = await getIo();
+			const weakIo: IoInterface = await getWeakIo();
+			const waSolution: Solution = await TestObjects.buildSolution(
+				'wa-solution.cpp', TestObjects.waCppSource);
+
+			const result: AggregatedVerdict[] = await testSolutions(
+				[waSolution], [io, weakIo]);
+
+			assert.equal(result.length, 1);
+			assert.deepStrictEqual(
+				result[0],
+				{
+					solutionName: 'wa-solution.cpp',
+					total:        2,
+					accepted: {
+						count:         1,
+						testCaseNames: []
+					},
+					wrongAnswer: {
+						count:         1,
+						testCaseNames: [
+							'input.in'
+						]
+					}
+				});
+		});
 	});
 });
 
@@ -178,6 +249,21 @@ async function getIo(): Promise<IoInterface> {
 		in:     inputTestCase,
 		out:    outputTestCase,
 		number: 1
+	};
+
+	return io;
+}
+
+async function getWeakIo(): Promise<IoInterface> {
+	const inputTestCase: TestCase = await TestObjects.buildTestCase(
+		'input-weak.in', 'in', '0 0\n');
+	const outputTestCase: TestCase = await TestObjects.buildTestCase(
+		'output-weak.in', 'out', '0\n');
+
+	const io: IoInterface = {
+		in:     inputTestCase,
+		out:    outputTestCase,
+		number: 2
 	};
 
 	return io;

@@ -96,4 +96,11 @@ export const memoryCppSource: string = `
 		}
 	}
 `;
+export const earlyReturn: string = `
+	#include <bits/stdc++.h>
+	using namespace std;
+	int main() {
+		return 1;
+	}
+`;
 

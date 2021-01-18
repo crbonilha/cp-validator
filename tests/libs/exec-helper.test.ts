@@ -157,6 +157,34 @@ describe('exec-helper', () => {
 			assert(!runResult.killed);
 			assert.equal(runResult.output, '6\n');
 		});
+
+		it('should return the code even if it stops reading the file before its end', async () => {
+			const sourcePath: string = await createFileAndCompileCode(
+				'early-return.cpp',
+				TestObjects.earlyReturn);
+			const inputFile: string = createInputFile();
+
+			const runResult: execHelper.RunResult = await execHelper.run(
+				`${ sourcePath }.exe`,
+				inputFile
+			);
+			assert(!runResult.killed);
+			assert(!!runResult.code);
+		});
+
+		it('should not throw exception if it stops too early and the input file is too big', async () => {
+			const sourcePath: string = await createFileAndCompileCode(
+				'early-return.cpp',
+				TestObjects.earlyReturn);
+			const inputFile: string = createLargeInputFile();
+
+			const runResult: execHelper.RunResult = await execHelper.run(
+				`${ sourcePath }.exe`,
+				inputFile
+			);
+			assert(!runResult.killed);
+			assert(!!runResult.code);
+		});
 	});
 });
 
@@ -184,7 +212,18 @@ function createInputFile(): string {
 	return TestHelper.createFileIfDoesntExist(
 		TestHelper.testTempDir,
 		'input.txt',
-		'2 4'
+		'2 4\n'
 	);
+}
+
+function createLargeInputFile(): string {
+	let content: string = '';
+	for(let i=0; i<100000; i++) {
+		content += ` ${ i }`;
+	}
+	return TestHelper.createFileIfDoesntExist(
+		TestHelper.testTempDir,
+		'large-input.txt',
+		content);
 }
 
