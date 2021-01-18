@@ -97,16 +97,16 @@ function getAggregatedValidatorVerdictsAsTable(
 
 	// rows
 	for(const avv of aggregatedValidatorVerdicts) {
-		message += `**${ avv.validatorName }** |`;
+		let row: string = `**${ avv.validatorName }** |`;
 
 		if(avv.passed === avv.total) {
-			message += ` **OK** | ${ avv.passed } | 0 | ${ avv.total }\n`;
+			row += ` **OK** | ${ avv.passed } | 0 | ${ avv.total }`;
 		}
 		else {
-			message += ` **NOT OK** | ${ avv.passed } | ${ avv.total-avv.passed } | ${ avv.total }\n`;
+			row += ` **NOT OK** | ${ avv.passed } | ${ avv.total-avv.passed } | ${ avv.total }`;
 		}
 
-		message += `\n`;
+		message += `${ row }\n`;
 	}
 
 	return message;
@@ -226,5 +226,5 @@ async function test2() {
 		debug(e);
 	}
 }
-//test2();
+test2();
 
