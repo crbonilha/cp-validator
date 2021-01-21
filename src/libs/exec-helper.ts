@@ -117,7 +117,7 @@ export async function run(
 			});
 
 			ps.stdin.on('error', (err: Error) => {
-				throw err;
+				debug(err);
 			});
 
 			createReadStream(inputPath).pipe(ps.stdin);
