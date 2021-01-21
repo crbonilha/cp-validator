@@ -237,5 +237,5 @@ async function test2() {
 		debug(e);
 	}
 }
-test2();
+//test2();
 
