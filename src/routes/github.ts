@@ -92,19 +92,30 @@ function getAggregatedValidatorVerdictsAsTable(
 	}
 
 	// header
-	message += 'Validator | Verdict | OK | NOT OK | TOTAL\n';
-	message += '--------- | ------- | -- | ------ | -----\n';
+	message += 'Validator / Folder';
+	for(const folder of aggregatedValidatorVerdicts[0].folders) {
+		message += ` | ${ folder.folder }`;
+	}
+	message += '\n';
+	message += '------------------';
+	for(const folder of aggregatedValidatorVerdicts[0].folders) {
+		message += ` | --`;
+	}
+	message += '\n';
 
 	// rows
 	for(const avv of aggregatedValidatorVerdicts) {
-		let row: string = `**${ avv.validatorName }** |`;
+		let row: string = `**${ avv.validatorName }**`;
 
-		if(avv.passed === avv.total) {
-			row += ` **OK** | ${ avv.passed } | 0 | ${ avv.total }`;
+		for(const folder of avv.folders) {
+			if(folder.passed === folder.total) {
+				row += ` | **OK**`;
+			}
+			else {
+				row += ` | **NOT OK** (${ folder.passed }/${ folder.total })`;
+			}
 		}
-		else {
-			row += ` **NOT OK** | ${ avv.passed } | ${ avv.total-avv.passed } | ${ avv.total }`;
-		}
+		row += '\n';
 
 		message += `${ row }\n`;
 	}
@@ -144,7 +155,7 @@ validateQueue.process(async (job) => {
 				const aggregatedValidatorVerdicts: AggregatedValidatorVerdict[] =
 					await validateInputs(
 						tree.getValidators(problemName),
-						tree.getAllIo(problemName)
+						tree.getAllIoFolders(problemName)
 					);
 				commitMessage += `### Validators\n\n`;
 				commitMessage += getAggregatedValidatorVerdictsAsTable(

@@ -24,7 +24,7 @@ export interface IoInterface {
 	out?:   TestCase;
 }
 
-interface IoFolderInterface {
+export interface IoFolderInterface {
 	folder: number;
 	ios:    IoInterface[];
 }
@@ -232,6 +232,18 @@ export default class Tree {
 		const problem: ProblemInterface =
 			this.tree.problems.find(problem => problem.name === problemName);
 		return problem.solutions;
+	}
+
+
+	getAllIoFolders(
+		problemName: string
+	): IoFolderInterface[] {
+		assert(this.tree !== undefined,
+			`Trying to get io before trimming the tree.`);
+
+		const problem: ProblemInterface =
+			this.tree.problems.find(problem => problem.name === problemName);
+		return problem.ioFolders;
 	}
 
 

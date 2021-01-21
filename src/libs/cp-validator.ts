@@ -1,7 +1,7 @@
 import Debug from "debug";
 import sequential from "promise-sequential";
 
-import { IoInterface } from "../models/tree";
+import { IoInterface, IoFolderInterface } from "../models/tree";
 import Solution from "../models/solution";
 import TestCase from "../models/test-case";
 import Validator from "../models/validator";
@@ -29,6 +29,7 @@ interface SolutionRun {
 
 interface ValidatorRun {
 	validatorName: string;
+	folderNumber:  number;
 	testCaseName:  string;
 	passed:        boolean;
 }
@@ -49,11 +50,15 @@ export interface AggregatedVerdict {
 	aborted?:           VerdictCount;
 }
 
+export interface AggregatedFolderValidatorVerdict {
+	folder: number;
+	total:  number;
+	passed: number;
+}
+
 export interface AggregatedValidatorVerdict {
-	validatorName:       string;
-	total:               number;
-	passed:              number;
-	failedTestCaseNames: string[];
+	validatorName: string;
+	folders:       AggregatedFolderValidatorVerdict[];
 }
 
 
@@ -156,8 +161,9 @@ function testSolution(
 
 
 function validateInput(
-	validator: Validator,
-	input:     TestCase
+	validator:    Validator,
+	folderNumber: number,
+	input:        TestCase
 ): () => Promise<ValidatorRun> {
 	return async () => {
 		debug(`Running validator ${ validator.name } on input ${ input.name }.`);
@@ -170,6 +176,7 @@ function validateInput(
 
 		return {
 			validatorName: validator.name,
+			folderNumber:  folderNumber,
 			testCaseName:  input.name,
 			passed:        passed
 		};
@@ -217,7 +224,7 @@ export async function testSolutions(
 
 export async function validateInputs(
 	validators: Validator[],
-	ios:        IoInterface[]
+	ioFolders:  IoFolderInterface[]
 ): Promise<AggregatedValidatorVerdict[]> {
 	const runPromises: (() => Promise<ValidatorRun>)[] = [];
 
@@ -226,10 +233,11 @@ export async function validateInputs(
 			await validator.compile();
 		} catch(e) {
 			runPromises.push(
-				() => {
+				(): Promise<ValidatorRun> => {
 					debug(`Failed to compile ${ validator.name }.`);
 					return Promise.resolve({
 						validatorName: validator.name,
+						folderNumber:  0,
 						testCaseName:  '',
 						passed:        false
 					});
@@ -238,13 +246,16 @@ export async function validateInputs(
 			continue;
 		}
 
-		for(const io of ios) {
-			runPromises.push(
-				validateInput(
-					validator,
-					io.in
-				)
-			);
+		for(const ioFolder of ioFolders) {
+			for(const io of ioFolder.ios) {
+				runPromises.push(
+					validateInput(
+						validator,
+						ioFolder.folder,
+						io.in
+					)
+				);
+			}
 		}
 	}
 
@@ -255,20 +266,25 @@ export async function validateInputs(
 		for(const vr of validatorRuns) {
 			if(!avvList.some(avv => avv.validatorName === vr.validatorName)) {
 				avvList.push({
-					validatorName:       vr.validatorName,
-					total:               0,
-					passed:              0,
-					failedTestCaseNames: []
+					validatorName: vr.validatorName,
+					folders:       []
 				});
 			}
 			const avv = avvList.find(avv => avv.validatorName === vr.validatorName);
 
-			avv.total++;
-			if(vr.passed) {
-				avv.passed++;
+			if(!avv.folders.some(folder => folder.folder === vr.folderNumber)) {
+				avv.folders.push({
+					folder: vr.folderNumber,
+					passed: 0,
+					total:  0
+				});
 			}
-			else {
-				avv.failedTestCaseNames.push(vr.testCaseName);
+			const folder: AggregatedFolderValidatorVerdict = avv.folders.find(
+				folder => folder.folder === vr.folderNumber);
+
+			folder.total++;
+			if(vr.passed) {
+				folder.passed++;
 			}
 		}
 		return avvList;
